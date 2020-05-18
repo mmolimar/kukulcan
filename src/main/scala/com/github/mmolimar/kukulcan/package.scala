@@ -48,4 +48,6 @@ package object kukulcan {
 
   def producer[K, V]: KProducer[K, V] = KProducer.inst.asInstanceOf[KProducer[K, V]]
 
+  def connect: KConnect = KConnect.inst
+
 }
