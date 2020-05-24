@@ -12,6 +12,7 @@ val repos = Seq(
 val dependencies = Seq(
   "org.apache.kafka" %% "kafka" % kafkaVersion,
   "org.apache.kafka" % "kafka-clients" % kafkaVersion,
+  "org.apache.kafka" % "kafka-tools" % kafkaVersion,
   "org.sourcelab" % "kafka-connect-client" % kafkaConnectClientVersion,
   "org.slf4j" % "slf4j-log4j12" % slf4jVersion
 )
