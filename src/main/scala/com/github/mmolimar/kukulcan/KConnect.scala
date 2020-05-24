@@ -144,6 +144,8 @@ private[kukulcan] case class KConnect(private val client: KafkaConnectClient) {
 
   case class TaskStatus(id: Int, state: String, workerId: String, trace: String)
 
+  def reload(): Unit = KConnect.reload()
+
   def serverVersion: ServerVersion = client.getConnectServerVersion
 
   def addConnector(name: String, config: Map[String, String]): Connector = {

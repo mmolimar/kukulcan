@@ -2,8 +2,6 @@ package com.github.mmolimar
 
 import java.util.Properties
 
-import org.slf4j.{Logger, LoggerFactory}
-
 import scala.reflect.io.File
 import scala.util.Properties.userHome
 
@@ -21,22 +19,16 @@ package object kukulcan {
 
   private[kukulcan] abstract class Api[K](name: String) {
 
-    final val log: Logger = LoggerFactory.getLogger(getClass)
-
-    log.info(s"Initializing ${name.toUpperCase}...")
     private var _instance: K = initialize()
 
     private def initialize(): K = {
-      val propsFile = s"${Constants.KUKULCAN_HOME}/${name.toLowerCase}.properties"
+      val propsFile = s"${Constants.KUKULCAN_HOME}/config/${name.toLowerCase}.properties"
       val props = new Properties()
       props.load(File(propsFile).inputStream())
       createInstance(props)
     }
 
-    final def reload(): Unit = {
-      log.info(s"Reloading ${name.toUpperCase}...")
-      _instance = initialize()
-    }
+    final def reload(): Unit = _instance = initialize()
 
     private[kukulcan] def inst: K = _instance
 
@@ -49,5 +41,8 @@ package object kukulcan {
   def producer[K, V]: KProducer[K, V] = KProducer.inst.asInstanceOf[KProducer[K, V]]
 
   def connect: KConnect = KConnect.inst
+
+  def admin: KAdmin = KAdmin.inst
+
 
 }
