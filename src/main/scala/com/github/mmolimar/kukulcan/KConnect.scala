@@ -58,91 +58,12 @@ private[kukulcan] object KConnect extends Api[KConnect]("connect") {
 
 }
 
-private[kukulcan] case class KConnect(private val client: KafkaConnectClient) {
+case class KConnect(private val client: KafkaConnectClient) {
 
-  import implicits._
+  import responses._
+  import responses.implicits._
 
   import scala.collection.JavaConverters._
-
-  case class ServerVersion(version: String, commit: String, clusterId: String)
-
-  case class Connector(
-                        name: String,
-                        `type`: String,
-                        tasks: Seq[TaskId],
-                        config: Map[String, String]
-                      )
-
-  case class ConnectorPlugin(className: String, `type`: String, version: String)
-
-  case class ConfigDefinition(
-                               name: String,
-                               `type`: String,
-                               required: Boolean,
-                               defaultValue: String,
-                               importance: String,
-                               documentation: String,
-                               group: String,
-                               width: String,
-                               displayName: String,
-                               dependents: Seq[String],
-                               order: Int
-                             )
-
-  case class ConfigValue(
-                          name: String,
-                          value: String,
-                          recommendedValues: Seq[String],
-                          errors: Seq[String],
-                          visible: Boolean
-                        )
-
-  case class ConnectorPluginValidationConfig(
-                                              definition: ConfigDefinition,
-                                              value: ConfigValue
-                                            )
-
-  case class ConnectorPluginValidation(
-                                        name: String,
-                                        errorCount: Int,
-                                        groups: Seq[String],
-                                        configs: Seq[ConnectorPluginValidationConfig]
-                                      )
-
-  case class ConnectorStatus(
-                              name: String,
-                              `type`: String,
-                              connector: Map[String, String],
-                              tasks: Seq[TaskStatus]
-                            )
-
-  case class ConnectorTopics(name: String, topics: Seq[String])
-
-  case class ConnectorExpandedInfo(
-                                    connectorNames: Seq[String],
-                                    definitions: Seq[Connector],
-                                    mappedDefinitions: Map[String, Connector]
-                                  )
-
-  case class ConnectorExpandedStatus(
-                                      connectorNames: Seq[String],
-                                      statuses: Seq[ConnectorStatus],
-                                      mappedStatuses: Map[String, ConnectorStatus]
-                                    )
-
-  case class ConnectorExpandedMetadata(
-                                        connectorNames: Seq[String],
-                                        definitions: Seq[Connector],
-                                        mappedDefinitions: Map[String, Connector],
-                                        statuses: Seq[ConnectorStatus],
-                                        mappedStatuses: Map[String, ConnectorStatus]
-                                      )
-
-  case class TaskId(connector: String, task: Int)
-
-  case class Task(id: TaskId, config: Map[String, String])
-
-  case class TaskStatus(id: Int, state: String, workerId: String, trace: String)
 
   def reload(): Unit = KConnect.reload()
 
@@ -196,105 +117,217 @@ private[kukulcan] case class KConnect(private val client: KafkaConnectClient) {
 
   def connectorsWithAllExpandedMetadata: ConnectorExpandedMetadata = client.getConnectorsWithAllExpandedMetadata
 
-  private object implicits {
+  object responses {
 
-    implicit def toServerVersion(serverVersion: JConnectServerVersion): ServerVersion = ServerVersion(
-      version = serverVersion.getVersion,
-      commit = serverVersion.getCommit,
-      clusterId = serverVersion.getKafkaClusterId
-    )
+    import io.circe._
+    import io.circe.generic.semiauto._
+    import io.circe.syntax._
 
-    implicit def toConnector(connector: JConnectorDefinition): Connector = Connector(
-      name = connector.getName,
-      `type` = connector.getType,
-      tasks = connector.getTasks.asScala.map(t => TaskId(t.getConnector, t.getTask)),
-      config = connector.getConfig.asScala.toMap
-    )
+    private implicit val serverVersionEncoder: Encoder[ServerVersion] = deriveEncoder[ServerVersion]
+    private implicit val connectorEncoder: Encoder[Connector] = deriveEncoder[Connector]
+    private implicit val connectorPluginEncoder: Encoder[ConnectorPlugin] = deriveEncoder[ConnectorPlugin]
+    private implicit val configDefinitionEncoder: Encoder[ConfigDefinition] = deriveEncoder[ConfigDefinition]
+    private implicit val configValueEncoder: Encoder[ConfigValue] = deriveEncoder[ConfigValue]
+    private implicit val connectorPluginValidationConfigEncoder: Encoder[ConnectorPluginValidationConfig] = deriveEncoder[ConnectorPluginValidationConfig]
+    private implicit val connectorPluginValidationEncoder: Encoder[ConnectorPluginValidation] = deriveEncoder[ConnectorPluginValidation]
+    private implicit val connectorStatusEncoder: Encoder[ConnectorStatus] = deriveEncoder[ConnectorStatus]
+    private implicit val connectorTopicsEncoder: Encoder[ConnectorTopics] = deriveEncoder[ConnectorTopics]
+    private implicit val connectorExpandedInfoEncoder: Encoder[ConnectorExpandedInfo] = deriveEncoder[ConnectorExpandedInfo]
+    private implicit val connectorExpandedStatusEncoder: Encoder[ConnectorExpandedStatus] = deriveEncoder[ConnectorExpandedStatus]
+    private implicit val connectorExpandedMetadataEncoder: Encoder[ConnectorExpandedMetadata] = deriveEncoder[ConnectorExpandedMetadata]
+    private implicit val taskIdEncoder: Encoder[TaskId] = deriveEncoder[TaskId]
+    private implicit val taskEncoder: Encoder[Task] = deriveEncoder[Task]
+    private implicit val taskStatusEncoder: Encoder[TaskStatus] = deriveEncoder[TaskStatus]
 
-    implicit def toConnectorPlugin(connectorPlugin: JConnectorPlugin): ConnectorPlugin = ConnectorPlugin(
-      className = connectorPlugin.getClassName,
-      `type` = connectorPlugin.getType,
-      version = connectorPlugin.getVersion
-    )
+    protected abstract class JsonSupport[T](implicit encoder: Encoder[T]) {
+      def toJson: String = convertToJson(this.asInstanceOf[T])(encoder)
 
-    implicit def toConnectorStatus(connectorStatus: JConnectorStatus): ConnectorStatus = ConnectorStatus(
-      name = connectorStatus.getName,
-      `type` = connectorStatus.getType,
-      connector = connectorStatus.getConnector.asScala.toMap,
-      tasks = connectorStatus.getTasks.asScala.map(t => TaskStatus(t.getId, t.getState, t.getTrace, t.getWorkerId)
+      def printJson(): Unit = println(toJson)
+    }
+
+    private def convertToJson[T](obj: T)(implicit encoder: Encoder[T]): String = obj.asJson.spaces2
+
+    case class ServerVersion(version: String, commit: String, clusterId: String) extends JsonSupport[ServerVersion]
+
+    case class Connector(
+                          name: String,
+                          `type`: String,
+                          tasks: Seq[TaskId],
+                          config: Map[String, String]
+                        ) extends JsonSupport[Connector]
+
+    case class ConnectorPlugin(className: String, `type`: String, version: String) extends JsonSupport[ConnectorPlugin]
+
+    case class ConfigDefinition(
+                                 name: String,
+                                 `type`: String,
+                                 required: Boolean,
+                                 defaultValue: String,
+                                 importance: String,
+                                 documentation: String,
+                                 group: String,
+                                 width: String,
+                                 displayName: String,
+                                 dependents: Seq[String],
+                                 order: Int
+                               ) extends JsonSupport[ConfigDefinition]
+
+    case class ConfigValue(
+                            name: String,
+                            value: String,
+                            recommendedValues: Seq[String],
+                            errors: Seq[String],
+                            visible: Boolean
+                          ) extends JsonSupport[ConfigValue]
+
+    case class ConnectorPluginValidationConfig(
+                                                definition: ConfigDefinition,
+                                                value: ConfigValue
+                                              ) extends JsonSupport[ConnectorPluginValidationConfig]
+
+    case class ConnectorPluginValidation(
+                                          name: String,
+                                          errorCount: Int,
+                                          groups: Seq[String],
+                                          configs: Seq[ConnectorPluginValidationConfig]
+                                        ) extends JsonSupport[ConnectorPluginValidation]
+
+    case class ConnectorStatus(
+                                name: String,
+                                `type`: String,
+                                connector: Map[String, String],
+                                tasks: Seq[TaskStatus]
+                              ) extends JsonSupport[ConnectorStatus]
+
+    case class ConnectorTopics(name: String, topics: Seq[String]) extends JsonSupport[ConnectorTopics]
+
+    case class ConnectorExpandedInfo(
+                                      connectorNames: Seq[String],
+                                      definitions: Seq[Connector],
+                                      mappedDefinitions: Map[String, Connector]
+                                    ) extends JsonSupport[ConnectorExpandedInfo]
+
+    case class ConnectorExpandedStatus(
+                                        connectorNames: Seq[String],
+                                        statuses: Seq[ConnectorStatus],
+                                        mappedStatuses: Map[String, ConnectorStatus]
+                                      ) extends JsonSupport[ConnectorExpandedStatus]
+
+    case class ConnectorExpandedMetadata(
+                                          connectorNames: Seq[String],
+                                          definitions: Seq[Connector],
+                                          mappedDefinitions: Map[String, Connector],
+                                          statuses: Seq[ConnectorStatus],
+                                          mappedStatuses: Map[String, ConnectorStatus]
+                                        ) extends JsonSupport[ConnectorExpandedMetadata]
+
+    case class TaskId(connector: String, task: Int) extends JsonSupport[TaskId]
+
+    case class Task(id: TaskId, config: Map[String, String]) extends JsonSupport[Task]
+
+    case class TaskStatus(id: Int, state: String, workerId: String, trace: String) extends JsonSupport[TaskStatus]
+
+    object implicits {
+
+      implicit def toServerVersion(serverVersion: JConnectServerVersion): ServerVersion = ServerVersion(
+        version = serverVersion.getVersion,
+        commit = serverVersion.getCommit,
+        clusterId = serverVersion.getKafkaClusterId
       )
-    )
 
-    implicit def toConnectorTopics(connectorTopics: JConnectorTopics): ConnectorTopics = ConnectorTopics(
-      name = connectorTopics.getName,
-      topics = connectorTopics.getTopics.asScala
-    )
+      implicit def toConnector(connector: JConnectorDefinition): Connector = Connector(
+        name = connector.getName,
+        `type` = connector.getType,
+        tasks = connector.getTasks.asScala.map(t => TaskId(t.getConnector, t.getTask)),
+        config = connector.getConfig.asScala.toMap
+      )
 
-    implicit def toConnectorPluginValidation(
-                                              validationResult: JConnectorPluginConfigValidationResults
-                                            ): ConnectorPluginValidation = ConnectorPluginValidation(
-      name = validationResult.getName,
-      errorCount = validationResult.getErrorCount,
-      groups = validationResult.getGroups.asScala.toSeq,
-      configs = validationResult.getConfigs.asScala.map { vr =>
-        val definition = ConfigDefinition(
-          name = vr.getDefinition.getName,
-          `type` = vr.getDefinition.getType,
-          required = vr.getDefinition.isRequired,
-          defaultValue = vr.getDefinition.getDefaultValue,
-          importance = vr.getDefinition.getImportance,
-          documentation = vr.getDefinition.getDocumentation,
-          group = vr.getDefinition.getGroup,
-          width = vr.getDefinition.getWidth,
-          displayName = vr.getDefinition.getDisplayName,
-          dependents = vr.getDefinition.getDependents.asScala.toSeq,
-          order = vr.getDefinition.getOrder
+      implicit def toConnectorPlugin(connectorPlugin: JConnectorPlugin): ConnectorPlugin = ConnectorPlugin(
+        className = connectorPlugin.getClassName,
+        `type` = connectorPlugin.getType,
+        version = connectorPlugin.getVersion
+      )
+
+      implicit def toConnectorStatus(connectorStatus: JConnectorStatus): ConnectorStatus = ConnectorStatus(
+        name = connectorStatus.getName,
+        `type` = connectorStatus.getType,
+        connector = connectorStatus.getConnector.asScala.toMap,
+        tasks = connectorStatus.getTasks.asScala.map(t => TaskStatus(t.getId, t.getState, t.getTrace, t.getWorkerId)
         )
-        val value = ConfigValue(
-          name = vr.getValue.getName,
-          value = vr.getValue.getValue,
-          recommendedValues = vr.getValue.getRecommendedValues.asScala.toSeq,
-          errors = vr.getValue.getErrors.asScala.toSeq,
-          visible = vr.getValue.isVisible
+      )
+
+      implicit def toConnectorTopics(connectorTopics: JConnectorTopics): ConnectorTopics = ConnectorTopics(
+        name = connectorTopics.getName,
+        topics = connectorTopics.getTopics.asScala
+      )
+
+      implicit def toConnectorPluginValidation(
+                                                validationResult: JConnectorPluginConfigValidationResults
+                                              ): ConnectorPluginValidation = ConnectorPluginValidation(
+        name = validationResult.getName,
+        errorCount = validationResult.getErrorCount,
+        groups = validationResult.getGroups.asScala.toSeq,
+        configs = validationResult.getConfigs.asScala.map { vr =>
+          val definition = ConfigDefinition(
+            name = vr.getDefinition.getName,
+            `type` = vr.getDefinition.getType,
+            required = vr.getDefinition.isRequired,
+            defaultValue = vr.getDefinition.getDefaultValue,
+            importance = vr.getDefinition.getImportance,
+            documentation = vr.getDefinition.getDocumentation,
+            group = vr.getDefinition.getGroup,
+            width = vr.getDefinition.getWidth,
+            displayName = vr.getDefinition.getDisplayName,
+            dependents = vr.getDefinition.getDependents.asScala.toSeq,
+            order = vr.getDefinition.getOrder
+          )
+          val value = ConfigValue(
+            name = vr.getValue.getName,
+            value = vr.getValue.getValue,
+            recommendedValues = vr.getValue.getRecommendedValues.asScala.toSeq,
+            errors = vr.getValue.getErrors.asScala.toSeq,
+            visible = vr.getValue.isVisible
+          )
+          ConnectorPluginValidationConfig(definition, value)
+        }.toSeq
+      )
+
+      implicit def toConnectorExpandedInfo(expandedInfo: JConnectorsWithExpandedInfo): ConnectorExpandedInfo =
+        ConnectorExpandedInfo(
+          connectorNames = expandedInfo.getConnectorNames.asScala.toSeq,
+          definitions = expandedInfo.getAllDefinitions.asScala.map(toConnector).toSeq,
+          mappedDefinitions = expandedInfo.getMappedDefinitions.asScala.map(s => s._1 -> toConnector(s._2)).toMap
         )
-        ConnectorPluginValidationConfig(definition, value)
-      }.toSeq
-    )
 
-    implicit def toConnectorExpandedInfo(expandedInfo: JConnectorsWithExpandedInfo): ConnectorExpandedInfo =
-      ConnectorExpandedInfo(
-        connectorNames = expandedInfo.getConnectorNames.asScala.toSeq,
-        definitions = expandedInfo.getAllDefinitions.asScala.map(toConnector).toSeq,
-        mappedDefinitions = expandedInfo.getMappedDefinitions.asScala.map(s => s._1 -> toConnector(s._2)).toMap
+      implicit def toConnectorExpandedStatus(expandedStatus: JConnectorsWithExpandedStatus): ConnectorExpandedStatus =
+        ConnectorExpandedStatus(
+          connectorNames = expandedStatus.getConnectorNames.asScala.toSeq,
+          statuses = expandedStatus.getAllStatuses.asScala.map(toConnectorStatus).toSeq,
+          mappedStatuses = expandedStatus.getMappedStatuses.asScala.map(s => s._1 -> toConnectorStatus(s._2)).toMap
+        )
+
+      implicit def toConnectorExpandedMetadata(metadata: JConnectorsWithExpandedMetadata): ConnectorExpandedMetadata =
+        ConnectorExpandedMetadata(
+          connectorNames = metadata.getConnectorNames.asScala.toSeq,
+          definitions = metadata.getAllDefinitions.asScala.map(toConnector).toSeq,
+          mappedDefinitions = metadata.getMappedDefinitions.asScala.map(s => s._1 -> toConnector(s._2)).toMap,
+          statuses = metadata.getAllStatuses.asScala.map(toConnectorStatus).toSeq,
+          mappedStatuses = metadata.getMappedStatuses.asScala.map(s => s._1 -> toConnectorStatus(s._2)).toMap
+        )
+
+      implicit def toTask(task: JTask): Task = Task(
+        id = TaskId(task.getId.getConnector, task.getId.getTask),
+        config = task.getConfig.asScala.toMap
       )
 
-    implicit def toConnectorExpandedStatus(expandedStatus: JConnectorsWithExpandedStatus): ConnectorExpandedStatus =
-      ConnectorExpandedStatus(
-        connectorNames = expandedStatus.getConnectorNames.asScala.toSeq,
-        statuses = expandedStatus.getAllStatuses.asScala.map(toConnectorStatus).toSeq,
-        mappedStatuses = expandedStatus.getMappedStatuses.asScala.map(s => s._1 -> toConnectorStatus(s._2)).toMap
+      implicit def toTaskStatus(taskStatus: JTaskStatus): TaskStatus = TaskStatus(
+        id = taskStatus.getId,
+        state = taskStatus.getState,
+        trace = taskStatus.getTrace,
+        workerId = taskStatus.getWorkerId
       )
+    }
 
-    implicit def toConnectorExpandedMetadata(metadata: JConnectorsWithExpandedMetadata): ConnectorExpandedMetadata =
-      ConnectorExpandedMetadata(
-        connectorNames = metadata.getConnectorNames.asScala.toSeq,
-        definitions = metadata.getAllDefinitions.asScala.map(toConnector).toSeq,
-        mappedDefinitions = metadata.getMappedDefinitions.asScala.map(s => s._1 -> toConnector(s._2)).toMap,
-        statuses = metadata.getAllStatuses.asScala.map(toConnectorStatus).toSeq,
-        mappedStatuses = metadata.getMappedStatuses.asScala.map(s => s._1 -> toConnectorStatus(s._2)).toMap
-      )
-
-    implicit def toTask(task: JTask): Task = Task(
-      id = TaskId(task.getId.getConnector, task.getId.getTask),
-      config = task.getConfig.asScala.toMap
-    )
-
-    implicit def toTaskStatus(taskStatus: JTaskStatus): TaskStatus = TaskStatus(
-      id = taskStatus.getId,
-      state = taskStatus.getState,
-      trace = taskStatus.getTrace,
-      workerId = taskStatus.getWorkerId
-    )
   }
 
 }
