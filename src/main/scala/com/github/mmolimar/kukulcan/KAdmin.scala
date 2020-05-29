@@ -74,17 +74,18 @@ private[kukulcan] case class KAdmin(private val props: Properties) {
               println(s"Found existing topic '$topic' on the brokers at $servers")
               Some(topic)
             case _: UnsupportedVersionException =>
-              println(s"Unable to create topic(s) '${newTopics.map(_.name).mkString(", ")}' since the brokers " +
-                s"at $servers do not support the CreateTopics API. Falling back to assume topic(s) exist or will " +
-                s"be auto-created by the broker.")
+              Console.err.println(s"Unable to create topic(s) '${newTopics.map(_.name).mkString(", ")}' since the " +
+                s"brokers at $servers do not support the CreateTopics API. Falling back to assume topic(s) exist or " +
+                s"will be auto-created by the broker.")
               None
             case _: ClusterAuthorizationException =>
-              println(s"Not authorized to create topic(s) '${newTopics.map(_.name).mkString(", ")}' upon the " +
-                s"brokers $servers. Falling back to assume topic(s) exist or will be auto-created by the broker.")
+              Console.err.println(s"Not authorized to create topic(s) '${newTopics.map(_.name).mkString(", ")}' upon " +
+                s"the brokers $servers. Falling back to assume topic(s) exist or will be auto-created by the broker.")
               None
             case _: TopicAuthorizationException =>
-              println(s"Not authorized to create topic(s) '{${newTopics.map(_.name).mkString(", ")}}' upon the " +
-                s"brokers $servers. Falling back to assume topic(s) exist or will be auto-created by the broker.")
+              Console.err.println(s"Not authorized to create topic(s) '{${newTopics.map(_.name).mkString(", ")}}' " +
+                s"upon the brokers $servers. Falling back to assume topic(s) exist or will be auto-created by " +
+                s"the broker.")
               None
             case e: Throwable =>
               throw new AdminOperationException(s"Error while attempting to create topic(s) " +
@@ -482,8 +483,8 @@ private[kukulcan] case class KAdmin(private val props: Properties) {
             .map(_.toCompletableFuture.get)
             .foreach { result =>
               result.exception.asScala.foreach { exception =>
-                println(s"Error while adding ACLs: ${exception.getMessage}")
-                println(Utils.stackTrace(exception))
+                Console.err.println(s"Error while adding ACLs: ${exception.getMessage}")
+                Console.err.println(Utils.stackTrace(exception))
               }
             }
           authorizer.close()
@@ -505,8 +506,8 @@ private[kukulcan] case class KAdmin(private val props: Properties) {
             .map(_.toCompletableFuture.get)
             .foreach { result =>
               result.exception.asScala.foreach { exception =>
-                println(s"Error while removing ACLs: ${exception.getMessage}")
-                println(Utils.stackTrace(exception))
+                Console.err.println(s"Error while removing ACLs: ${exception.getMessage}")
+                Console.err.println(Utils.stackTrace(exception))
               }
             }
           authorizer.close()
