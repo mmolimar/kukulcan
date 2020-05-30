@@ -2,6 +2,8 @@ package com.github.mmolimar
 
 import java.util.Properties
 
+import org.apache.kafka.streams.Topology
+
 import scala.reflect.io.File
 import scala.util.Properties.userHome
 
@@ -36,13 +38,14 @@ package object kukulcan {
 
   }
 
+  def admin: KAdmin = KAdmin.inst
+
   def consumer[K, V]: KConsumer[K, V] = KConsumer.inst.asInstanceOf[KConsumer[K, V]]
 
   def producer[K, V]: KProducer[K, V] = KProducer.inst.asInstanceOf[KProducer[K, V]]
 
   def connect: KConnect = KConnect.inst
 
-  def admin: KAdmin = KAdmin.inst
-
+  def streams(topology: Topology): KStreams = KStreams.inst(topology)
 
 }
