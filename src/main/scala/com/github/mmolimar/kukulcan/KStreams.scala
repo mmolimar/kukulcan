@@ -20,10 +20,13 @@ private[kukulcan] case class KStreams(topology: Topology, props: Properties) ext
   import com.github.mdr.ascii.graph.Graph
   import com.github.mdr.ascii.layout._
   import com.github.mdr.ascii.layout.prefs.LayoutPrefsImpl
-  import graphs._
+  import kgraphs.NodeType._
+  import kgraphs._
   import org.apache.kafka.common.{Metric, MetricName}
   import org.apache.kafka.streams.processor.internals.InternalTopologyBuilder._
   import org.apache.kafka.streams.{StreamsConfig, TopologyDescription}
+
+  import scala.collection.mutable
 
   def reload(): Unit = KStreams.reload()
 
@@ -53,61 +56,133 @@ private[kukulcan] case class KStreams(topology: Topology, props: Properties) ext
 
     nodes.asScala.flatMap { node =>
       val extra = node match {
-        case source: Source => List(source.topicSet.asScala.mkString(",") -> source.name)
-        case sink: Sink => List(sink.name -> sink.topic)
-        case processor: Processor => processor.stores.asScala.map(s => processor.name -> s).toList
+        case source: Source =>
+          val topics = Option(source.topicSet).map(_.asScala.map(topic => topic -> source.name).toList).getOrElse(List.empty)
+          val pattern = Option(source.topicPattern).map(tp => tp.pattern -> source.name).toList
+          topics ++ pattern
+        case sink: Sink =>
+          Option(sink.topic).map(t => sink.name -> t).toList ++
+            Option(sink.topicNameExtractor)
+              .map(t => sink.name -> s"EXTRACTOR[${t.hashCode}]").toList
+        case processor: Processor =>
+          processor.stores.asScala.map(s => processor.name -> s).toList
         case _ => List.empty
       }
       nodeEdges(node) ++ extra ++ successorEdges(node.successors)
     }.toList
   }
 
-  private def topologyGraph(subtopologies: List[TopologyDescription.Subtopology]): KGraph[KGraphTopology[KGraph[String]]] = {
+  private def toKGraph(node: TopologyDescription.Node): List[KGraphNode] = node match {
+    case source: Source =>
+      val topics = Option(source.topicSet).map(_.asScala.map(topic =>
+        new KGraphNodeSource(source = topic, target = source.name, TOPIC)
+      )).getOrElse(List.empty)
+      val pattern = Option(source.topicPattern).map(tp =>
+        new KGraphNodeSource(source = tp.pattern, target = source.name, TOPIC_PATTERN)
+      ).toList
+      (topics ++ pattern).toList
+    case sink: Sink =>
+      Option(sink.topic).map(t => new KGraphNodeSink(source = sink.name, target = t, TOPIC)).toList ++
+        Option(sink.topicNameExtractor)
+          .map(t => new KGraphNodeSink(source = sink.name, target = s"EXTRACTOR[${t.hashCode}]", TOPIC_EXTRACTOR)).toList
+    case processor: Processor =>
+      processor.stores.asScala.map(store =>
+        new KGraphNodeProcessor(source = processor.name, target = store, STORE)
+      ).toList
+    case _ => List.empty
+  }
+
+  private def edgesFromGraph(graph: List[KGraph[String]], subtopologies: List[KGraphSubtopology[String]]): List[(KGraph[String], KGraph[String])] = {
+    graph.flatMap {
+      case node: KGraphNodeSource =>
+        subtopologies.filter(g => g.vertices.contains(node.target)).map(target => (node, target))
+      case node: KGraphNodeSink =>
+        subtopologies.filter(g => g.vertices.contains(node.source)).map(source => (source, node))
+      case node: KGraphNodeProcessor =>
+        subtopologies.filter(g => g.vertices.contains(node.source)).map(source => (source, node))
+      case subtopology: KGraphSubtopology[String] =>
+        graph.filter(g => g.isInstanceOf[KGraphNode]).flatMap {
+          case node: KGraphNodeSource if subtopology.vertices.contains(node.source) &&
+            !subtopology.vertices.contains(node.target) =>
+            List((subtopology, node))
+          case node: KGraphNodeSink if !subtopology.vertices.contains(node.source) &&
+            subtopology.vertices.contains(node.target) =>
+            List((node, subtopology))
+          case node: KGraphNodeProcessor if !subtopology.vertices.contains(node.source) &&
+            subtopology.vertices.contains(node.target) =>
+            List((node, subtopology))
+          case _ =>
+            List.empty
+        }
+      case _ => List.empty
+    }.distinct
+  }
+
+  private def topologyGraph(subtopologies: List[TopologyDescription.Subtopology]): KGraphTopology[KGraph[String]] = {
     val subtopologiesGraph = subtopologies.map { subtopology =>
       val edges = successorEdges(subtopology.nodes)
       val vertices = edges.flatMap(e => List(e._1, e._2)).toSet
       new KGraphSubtopology(id = subtopology.id, vertices = vertices, edges = edges)
     }
-    val nodesGraph = subtopologies.flatMap(_.nodes.asScala.toList.flatMap {
-      case source: Source =>
-        source.topicSet.asScala.map(topic =>
-          new KGraphNodeSource(source = topic, target = source.name)
-        )
-      case sink: Sink =>
-        List(new KGraphNodeTarget(source = sink.name, target = sink.topic))
-      case processor: Processor =>
-        processor.stores.asScala.map(store =>
-          new KGraphNodeProcessor(source = processor.name, target = store)
-        )
-      case _ => List.empty
-    })
-
+    val nodesGraph = subtopologies.flatMap(_.nodes.asScala.toList.flatMap(toKGraph)).toSet
     val graph = subtopologiesGraph ++ nodesGraph
-    val graphEdges = graph.flatMap {
-      case node: KGraphNodeSource =>
-        subtopologiesGraph.filter(g => g.vertices.contains(node.target)).map(target => (node, target))
-      case node: KGraphNodeTarget =>
-        subtopologiesGraph.filter(g => g.vertices.contains(node.source)).map(source => (source, node))
-      case node: KGraphNodeProcessor =>
-        subtopologiesGraph.filter(g => g.vertices.contains(node.source)).map(source => (source, node))
-      case _ => List.empty
-    }
+    val graphEdges = edgesFromGraph(graph, subtopologiesGraph)
 
-    val aggregator = new KGraphTopology(vertices = graph.toSet, edges = graphEdges)
-    new KGraph(vertices = Set(aggregator), edges = List.empty)
+    new KGraphTopology(vertices = graph.toSet, edges = graphEdges)
   }
 
-  def printTopology(subtopologies: Boolean = true, globaStores: Boolean = true): Unit = {
+  private def topologyGlobalStores(globalStores: List[TopologyDescription.GlobalStore]): KGraphTopology[KGraph[String]] = {
+    val globalStoresGraph = globalStores.map { globalStore =>
+      val edges = {
+        val processorEdges = {
+          globalStore.processor.successors.asScala
+            .map(s => globalStore.processor.name -> s.name).toList ++ successorEdges(globalStore.processor.successors)
+        }
+        val sourceEdges = {
+          Option(globalStore.source.topicSet)
+            .map(_.asScala.map(topic => topic -> globalStore.source.name).toList).getOrElse(List.empty) ++
+            Option(globalStore.source.topicPattern).map(tp => tp.pattern -> globalStore.source.name).toList ++
+            globalStore.source.successors.asScala.map(s => globalStore.source.name -> s.name).toList ++
+            successorEdges(globalStore.source.successors)
+        }
+        processorEdges ++ sourceEdges
+      }
+      val vertices = edges.flatMap(e => List(e._1, e._2)).toSet
+      new KGraphSubtopologyGlobalStore(id = globalStore.id, vertices = vertices, edges = edges)
+    }
+    val nodesGraph = globalStores.flatMap { gs =>
+      gs.processor.successors.asScala.map(toKGraph) ++ gs.source.successors.asScala.map(toKGraph) ++
+        List(
+          Option(gs.source.topicSet).map(_.asScala
+            .map(topic => new KGraphNodeSource(source = topic, target = gs.source.name, TOPIC)).toList)
+            .getOrElse(List.empty),
+          Option(gs.source.topicPattern)
+            .map(tp => new KGraphNodeSource(source = tp.pattern, target = gs.processor.name, TOPIC_PATTERN)).toList
+        )
+    }.flatten
+
+    val graph = globalStoresGraph ++ nodesGraph
+    val graphEdges = edgesFromGraph(graph, globalStoresGraph)
+
+    new KGraphTopology(vertices = graph.toSet, edges = graphEdges)
+  }
+
+  def printTopology(subtopologies: Boolean = true, globalStores: Boolean = true): Unit = {
     val description = topology.describe()
-    if (subtopologies) {
-      println(topologyGraph(description.subtopologies.asScala.toList))
-    }
-    if (globaStores) {
+    val graphs = mutable.Set[KGraphTopology[KGraph[String]]]()
 
+    if (subtopologies) {
+      val graph = topologyGraph(description.subtopologies.asScala.toList)
+      if (graph.vertices.nonEmpty) graphs.add(graph)
     }
+    if (globalStores) {
+      val graph = topologyGlobalStores(description.globalStores.asScala.toList)
+      if (graph.vertices.nonEmpty) graphs.add(graph)
+    }
+    println(new KGraph(vertices = graphs.toSet, edges = List.empty))
   }
 
-  private object graphs {
+  private object kgraphs {
 
     class KGraph[V](
                      override val vertices: Set[V],
@@ -151,7 +226,34 @@ private[kukulcan] case class KStreams(topology: Topology, props: Properties) ext
           GraphLayout.renderGraph(this, layoutPrefs = layout.copy(doubleVertices = false, rounded = false))
       }
 
-      override lazy val hashCode = vertices.## + edges.## + id.hashCode
+      override lazy val hashCode: Int = vertices.## + edges.## + id.hashCode
+
+    }
+
+    class KGraphSubtopologyGlobalStore[V](
+                                           override val id: Int,
+                                           override val vertices: Set[V],
+                                           override val edges: List[(V, V)]
+                                         ) extends KGraphSubtopology(id = id, vertices = vertices, edges = edges) {
+
+      override def toString: String = {
+        s"Sub-topology: $id\nfor global store (will not generate tasks)\n\n" +
+          GraphLayout.renderGraph(this, layoutPrefs = layout.copy(doubleVertices = false, rounded = false))
+      }
+
+    }
+
+    sealed trait NodeType
+
+    object NodeType {
+
+      case object TOPIC extends NodeType
+
+      case object TOPIC_PATTERN extends NodeType
+
+      case object TOPIC_EXTRACTOR extends NodeType
+
+      case object STORE extends NodeType
 
     }
 
@@ -159,19 +261,22 @@ private[kukulcan] case class KStreams(topology: Topology, props: Properties) ext
 
       def title: String = name
 
+      def nodeType: NodeType
+
       override def toString: String = {
-        GraphLayout.renderGraph(this, layoutPrefs = layout.copy(unicode = false, doubleVertices = false, rounded = false))
+        GraphLayout.renderGraph(this, layoutPrefs = layout.copy(unicode = false, doubleVertices = false, rounded = false)) +
+          s"\n$nodeType"
       }
 
-      override lazy val hashCode = vertices.## + edges.## + title.hashCode
+      override lazy val hashCode: Int = vertices.## + edges.## + title.hashCode
 
     }
 
-    class KGraphNodeSource(val source: String, val target: String) extends KGraphNode(name = source)
+    class KGraphNodeSource(val source: String, val target: String, val nodeType: NodeType) extends KGraphNode(name = source)
 
-    class KGraphNodeTarget(val source: String, val target: String) extends KGraphNode(name = target)
+    class KGraphNodeSink(val source: String, val target: String, val nodeType: NodeType) extends KGraphNode(name = target)
 
-    class KGraphNodeProcessor(val source: String, val target: String) extends KGraphNode(name = target)
+    class KGraphNodeProcessor(val source: String, val target: String, val nodeType: NodeType) extends KGraphNode(name = target)
 
   }
 
