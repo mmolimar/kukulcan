@@ -1,11 +1,10 @@
 package com.github.mmolimar.kukulcan
 
-import java.util.Properties
+import _root_.java.util.Properties
 
 import kafka.admin.AdminOperationException
 import kafka.utils.Whitelist
 import org.apache.kafka.clients.admin._
-import org.apache.kafka.common.internals.Topic
 
 import scala.collection.JavaConverters._
 import scala.util.Try
@@ -14,20 +13,23 @@ import scala.util.Try
 private[kukulcan] object KAdmin extends Api[KAdmin]("admin") {
 
   override protected def createInstance(props: Properties): KAdmin = {
-    KAdmin(props)
+    new KAdmin(props)
   }
 
 }
 
-private[kukulcan] case class KAdmin(private val props: Properties) {
-
-  val client: Admin = Admin.create(props)
+private[kukulcan] class KAdmin(private val props: Properties) {
 
   lazy val servers: String = props.getProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG)
+  val client: Admin = Admin.create(props)
+  val topics = new KAdminTopics
+  val configs = new KAdminConfigs
+  val acls = new KAdminAcls
+  val metrics = new KAdminMetrics
 
   def reload(): Unit = KAdmin.reload()
 
-  object topics {
+  class KAdminTopics {
 
     import kafka.admin.TopicCommand.{PartitionDescription, TopicDescription}
     import kafka.common.AdminCommandFailedException
@@ -35,6 +37,7 @@ private[kukulcan] case class KAdmin(private val props: Properties) {
     import org.apache.kafka.common.config.ConfigResource
     import org.apache.kafka.common.config.ConfigResource.Type
     import org.apache.kafka.common.errors.{ClusterAuthorizationException, TopicAuthorizationException, TopicExistsException, UnsupportedVersionException}
+    import org.apache.kafka.common.internals.Topic
     import org.apache.kafka.common.{TopicPartition, TopicPartitionInfo}
 
     def createTopic(
@@ -160,7 +163,7 @@ private[kukulcan] case class KAdmin(private val props: Properties) {
                        withConfigs: Boolean = true,
                        withPartitions: Boolean = true
                      ): Unit = {
-      describeTopics(Seq(name), options)
+      describeTopics(Seq(name), options, withConfigs, withPartitions)
     }
 
     def describeTopics(
@@ -259,15 +262,16 @@ private[kukulcan] case class KAdmin(private val props: Properties) {
 
   }
 
-  object configs {
+  class KAdminConfigs {
 
-    import java.util.Collections
-    import java.util.concurrent.TimeUnit
+    import _root_.java.util.Collections
+    import _root_.java.util.concurrent.TimeUnit
 
     import kafka.admin.ConfigCommand.BrokerLoggerConfigType
     import kafka.server.ConfigType
     import org.apache.kafka.common.config.ConfigResource
     import org.apache.kafka.common.errors.InvalidConfigurationException
+    import org.apache.kafka.common.internals.Topic
 
     import scala.collection.Map
 
@@ -449,7 +453,7 @@ private[kukulcan] case class KAdmin(private val props: Properties) {
 
   }
 
-  object acls {
+  class KAdminAcls {
 
     import kafka.security.authorizer.{AclAuthorizer, AuthorizerUtils}
     import org.apache.kafka.common.acl.{AclBinding, AclBindingFilter}
@@ -549,7 +553,7 @@ private[kukulcan] case class KAdmin(private val props: Properties) {
     }
   }
 
-  object metrics {
+  class KAdminMetrics {
 
     import org.apache.kafka.common.{Metric, MetricName}
     import org.apache.kafka.tools.{ToolsUtils => JToolsUtils}
