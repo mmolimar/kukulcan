@@ -1,6 +1,6 @@
 package com.github.mmolimar.kukulcan
 
-import java.util.Properties
+import _root_.java.util.Properties
 
 import org.apache.kafka.streams.{KafkaStreams, Topology}
 import org.apache.kafka.tools.{ToolsUtils => JToolsUtils}
@@ -10,12 +10,14 @@ import scala.collection.JavaConverters._
 private[kukulcan] object KStreams extends Api[Topology => KStreams]("streams") {
 
   override protected def createInstance(props: Properties): Topology => KStreams = {
-    topology: Topology => KStreams(topology, props)
+    topology: Topology => new KStreams(topology, props)
   }
 
 }
 
-private[kukulcan] case class KStreams(topology: Topology, props: Properties) extends KafkaStreams(topology, props) {
+class KStreams(val topology: Topology, val props: Properties) extends KafkaStreams(topology, props) {
+
+  import _root_.java.util.{Set => JSet}
 
   import com.github.mdr.ascii.graph.Graph
   import com.github.mdr.ascii.layout._
@@ -32,12 +34,12 @@ private[kukulcan] case class KStreams(topology: Topology, props: Properties) ext
 
   def withApplicationId(applicationId: String): KStreams = {
     val newProps = new Properties()
-    newProps.putAll(props)
+    props.asScala.foreach(p => newProps.put(p._1, p._2))
     newProps.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId)
-    copy(props = newProps)
+    new KStreams(topology = this.topology, props = newProps)
   }
 
-  def withProperties(props: Properties): KStreams = copy(props = props)
+  def withProperties(props: Properties): KStreams = new KStreams(topology = this.topology, props = props)
 
   def getMetrics(groupRegex: String = ".*", nameRegex: String = ".*"): Map[MetricName, Metric] = {
     metrics.asScala
@@ -49,7 +51,22 @@ private[kukulcan] case class KStreams(topology: Topology, props: Properties) ext
     JToolsUtils.printMetrics(getMetrics(groupRegex, nameRegex).asJava)
   }
 
-  private def successorEdges(nodes: java.util.Set[TopologyDescription.Node]): List[(String, String)] = {
+  def printTopology(subtopologies: Boolean = true, globalStores: Boolean = true): Unit = {
+    val description = topology.describe()
+    val graphs = mutable.Set[KGraphTopology[KGraph[String]]]()
+
+    if (subtopologies) {
+      val graph = topologyGraph(description.subtopologies.asScala.toList)
+      if (graph.vertices.nonEmpty) graphs.add(graph)
+    }
+    if (globalStores) {
+      val graph = topologyGlobalStores(description.globalStores.asScala.toList)
+      if (graph.vertices.nonEmpty) graphs.add(graph)
+    }
+    println(new KGraph(vertices = graphs.toSet, edges = List.empty))
+  }
+
+  private def successorEdges(nodes: JSet[TopologyDescription.Node]): List[(String, String)] = {
     def nodeEdges(node: TopologyDescription.Node): List[(String, String)] = {
       node.successors.asScala.flatMap(successor => List(node.name -> successor.name) ++ nodeEdges(successor)).toList
     }
@@ -165,21 +182,6 @@ private[kukulcan] case class KStreams(topology: Topology, props: Properties) ext
     val graphEdges = edgesFromGraph(graph, globalStoresGraph)
 
     new KGraphTopology(vertices = graph.toSet, edges = graphEdges)
-  }
-
-  def printTopology(subtopologies: Boolean = true, globalStores: Boolean = true): Unit = {
-    val description = topology.describe()
-    val graphs = mutable.Set[KGraphTopology[KGraph[String]]]()
-
-    if (subtopologies) {
-      val graph = topologyGraph(description.subtopologies.asScala.toList)
-      if (graph.vertices.nonEmpty) graphs.add(graph)
-    }
-    if (globalStores) {
-      val graph = topologyGlobalStores(description.globalStores.asScala.toList)
-      if (graph.vertices.nonEmpty) graphs.add(graph)
-    }
-    println(new KGraph(vertices = graphs.toSet, edges = List.empty))
   }
 
   private object kgraphs {

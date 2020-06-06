@@ -1,6 +1,6 @@
 package com.github.mmolimar.kukulcan
 
-import java.util.Properties
+import _root_.java.util.Properties
 
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.tools.{ToolsUtils => JToolsUtils}

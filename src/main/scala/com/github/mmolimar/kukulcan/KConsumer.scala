@@ -1,6 +1,6 @@
 package com.github.mmolimar.kukulcan
 
-import java.util.Properties
+import _root_.java.util.Properties
 
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.tools.{ToolsUtils => JToolsUtils}
@@ -10,16 +10,20 @@ import scala.collection.JavaConverters._
 private[kukulcan] object KConsumer extends Api[KConsumer[AnyRef, AnyRef]]("consumer") {
 
   override protected def createInstance(props: Properties): KConsumer[AnyRef, AnyRef] = {
-    KConsumer[AnyRef, AnyRef](props)
+    new KConsumer[AnyRef, AnyRef](props)
   }
 
 }
 
-private[kukulcan] case class KConsumer[K, V](props: Properties) extends KafkaConsumer[K, V](props) {
+private[kukulcan] class KConsumer[K, V](val props: Properties) extends KafkaConsumer[K, V](props) {
 
   import org.apache.kafka.common.{Metric, MetricName}
 
   def reload(): Unit = KConsumer.reload()
+
+  def subscribe(topic: String): Unit = subscribe(Seq(topic))
+
+  def subscribe(topics: Seq[String]): Unit = subscribe(topics.asJava)
 
   def getMetrics(groupRegex: String = ".*", nameRegex: String = ".*"): Map[MetricName, Metric] = {
     metrics.asScala
