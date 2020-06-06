@@ -18,9 +18,9 @@ private[kukulcan] object KAdmin extends Api[KAdmin]("admin") {
 
 }
 
-private[kukulcan] class KAdmin(private val props: Properties) {
+class KAdmin(val props: Properties) {
 
-  lazy val servers: String = props.getProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG)
+  val servers: String = props.getProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG)
   val client: Admin = Admin.create(props)
   val topics = new KAdminTopics
   val configs = new KAdminConfigs
@@ -242,7 +242,7 @@ private[kukulcan] class KAdmin(private val props: Properties) {
         if (replicaAssignment.nonEmpty) {
           validateReplicaAssignment()
           val partitionId = topicsInfo.get(topicName).get.partitions.size
-          val newAssignment = replicaAssignment.drop(partitionId).values.map(_.map(new Integer(_)).asJava).toSeq.asJava
+          val newAssignment = replicaAssignment.drop(partitionId).values.map(_.map(Integer.valueOf).asJava).toSeq.asJava
           topicName -> NewPartitions.increaseTo(partitions, newAssignment)
         } else {
           topicName -> NewPartitions.increaseTo(partitions)

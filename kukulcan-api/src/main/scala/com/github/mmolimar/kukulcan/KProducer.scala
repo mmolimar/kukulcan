@@ -10,12 +10,12 @@ import scala.collection.JavaConverters._
 private[kukulcan] object KProducer extends Api[KProducer[AnyRef, AnyRef]]("producer") {
 
   override protected def createInstance(props: Properties): KProducer[AnyRef, AnyRef] = {
-    KProducer[AnyRef, AnyRef](props)
+    new KProducer[AnyRef, AnyRef](props)
   }
 
 }
 
-private[kukulcan] case class KProducer[K, V](props: Properties) extends KafkaProducer[K, V](props) {
+class KProducer[K, V](val props: Properties) extends KafkaProducer[K, V](props) {
 
   import org.apache.kafka.common.{Metric, MetricName}
 

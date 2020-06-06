@@ -106,13 +106,13 @@ public class KAdmin {
             return getNewPartitionsDistribution(Collections.singletonList(topic), partitions, replicaAssignment);
         }
 
+        @SuppressWarnings("unchecked")
         public Map<String, NewPartitions> getNewPartitionsDistribution(List<String> topics, int partitions,
                                                                        Map<Integer, List<Integer>> replicaAssignment) {
             Object assignments = toScalaMap(
                     replicaAssignment.entrySet().stream()
                             .collect(Collectors.toMap(Map.Entry::getKey, entry -> toScalaSeq(entry.getValue())))
             );
-            //noinspection unchecked
             return toJavaMap(
                     this.topics.getNewPartitionsDistribution(
                             toScalaSeq(topics),
@@ -126,12 +126,12 @@ public class KAdmin {
             alterTopics(Collections.singletonList(topic), partitions, replicaAssignment);
         }
 
+        @SuppressWarnings("unchecked")
         public void alterTopics(List<String> topics, int partitions, Map<Integer, List<Integer>> replicaAssignment) {
             Object assignments = toScalaMap(
                     replicaAssignment.entrySet().stream()
                             .collect(Collectors.toMap(Map.Entry::getKey, entry -> toScalaSeq(entry.getValue())))
             );
-            //noinspection unchecked
             this.topics.alterTopics(
                     toScalaSeq(topics),
                     partitions,

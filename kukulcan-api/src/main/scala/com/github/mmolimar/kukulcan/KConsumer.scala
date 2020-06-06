@@ -15,7 +15,7 @@ private[kukulcan] object KConsumer extends Api[KConsumer[AnyRef, AnyRef]]("consu
 
 }
 
-private[kukulcan] class KConsumer[K, V](val props: Properties) extends KafkaConsumer[K, V](props) {
+class KConsumer[K, V](val props: Properties) extends KafkaConsumer[K, V](props) {
 
   import org.apache.kafka.common.{Metric, MetricName}
 
