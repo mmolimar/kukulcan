@@ -9,15 +9,6 @@ import org.apache.kafka.clients.admin._
 import scala.collection.JavaConverters._
 import scala.util.Try
 
-
-private[kukulcan] object KAdmin extends Api[KAdmin]("admin") {
-
-  override protected def createInstance(props: Properties): KAdmin = {
-    new KAdmin(props)
-  }
-
-}
-
 class KAdmin(val props: Properties) {
 
   val servers: String = props.getProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG)
@@ -26,8 +17,6 @@ class KAdmin(val props: Properties) {
   val configs = new KAdminConfigs
   val acls = new KAdminAcls
   val metrics = new KAdminMetrics
-
-  def reload(): Unit = KAdmin.reload()
 
   class KAdminTopics {
 
@@ -558,13 +547,21 @@ class KAdmin(val props: Properties) {
     import org.apache.kafka.common.{Metric, MetricName}
     import org.apache.kafka.tools.{ToolsUtils => JToolsUtils}
 
-    def getMetrics(groupRegex: String = ".*", nameRegex: String = ".*"): Map[MetricName, Metric] = {
+    def getMetrics: Map[MetricName, Metric] = {
+      getMetrics(".*", ".*")
+    }
+
+    def getMetrics(groupRegex: String, nameRegex: String): Map[MetricName, Metric] = {
       client.metrics.asScala
         .filter(metric => metric._1.group.matches(groupRegex) && metric._1.name.matches(nameRegex))
         .toMap
     }
 
-    def listMetrics(groupRegex: String = ".*", nameRegex: String = ".*"): Unit = {
+    def listMetrics(): Unit = {
+      listMetrics(".*", ".*")
+    }
+
+    def listMetrics(groupRegex: String, nameRegex: String): Unit = {
       JToolsUtils.printMetrics(getMetrics(groupRegex, nameRegex).asJava)
     }
 

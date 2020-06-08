@@ -7,14 +7,6 @@ import org.apache.kafka.tools.{ToolsUtils => JToolsUtils}
 
 import scala.collection.JavaConverters._
 
-private[kukulcan] object KStreams extends Api[Topology => KStreams]("streams") {
-
-  override protected def createInstance(props: Properties): Topology => KStreams = {
-    topology: Topology => new KStreams(topology, props)
-  }
-
-}
-
 class KStreams(val topology: Topology, val props: Properties) extends KafkaStreams(topology, props) {
 
   import _root_.java.util.{Set => JSet}
@@ -30,8 +22,6 @@ class KStreams(val topology: Topology, val props: Properties) extends KafkaStrea
 
   import scala.collection.mutable
 
-  def reload(): Unit = KStreams.reload()
-
   def withApplicationId(applicationId: String): KStreams = {
     val newProps = new Properties()
     props.asScala.foreach(p => newProps.put(p._1, p._2))
@@ -41,13 +31,21 @@ class KStreams(val topology: Topology, val props: Properties) extends KafkaStrea
 
   def withProperties(props: Properties): KStreams = new KStreams(topology = this.topology, props = props)
 
-  def getMetrics(groupRegex: String = ".*", nameRegex: String = ".*"): Map[MetricName, Metric] = {
+  def getMetrics: Map[MetricName, Metric] = {
+    getMetrics(".*", ".*")
+  }
+
+  def getMetrics(groupRegex: String, nameRegex: String): Map[MetricName, Metric] = {
     metrics.asScala
       .filter(metric => metric._1.group.matches(groupRegex) && metric._1.name.matches(nameRegex))
       .toMap
   }
 
-  def listMetrics(groupRegex: String = ".*", nameRegex: String = ".*"): Unit = {
+  def listMetrics(): Unit = {
+    listMetrics(".*", ".*")
+  }
+
+  def listMetrics(groupRegex: String, nameRegex: String): Unit = {
     JToolsUtils.printMetrics(getMetrics(groupRegex, nameRegex).asJava)
   }
 

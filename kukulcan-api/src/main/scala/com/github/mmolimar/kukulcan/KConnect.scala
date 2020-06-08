@@ -6,14 +6,6 @@ import _root_.java.util.Properties
 import org.sourcelab.kafka.connect.apiclient.request.dto.{ConnectServerVersion => JConnectServerVersion, ConnectorDefinition => JConnectorDefinition, ConnectorPlugin => JConnectorPlugin, ConnectorPluginConfigDefinition => JConnectorPluginConfigDefinition, ConnectorPluginConfigValidationResults => JConnectorPluginConfigValidationResults, ConnectorStatus => JConnectorStatus, ConnectorTopics => JConnectorTopics, ConnectorsWithExpandedInfo => JConnectorsWithExpandedInfo, ConnectorsWithExpandedMetadata => JConnectorsWithExpandedMetadata, ConnectorsWithExpandedStatus => JConnectorsWithExpandedStatus, NewConnectorDefinition => JNewConnectorDefinition, Task => JTask, TaskStatus => JTaskStatus}
 import org.sourcelab.kafka.connect.apiclient.{Configuration, KafkaConnectClient}
 
-private[kukulcan] object KConnect extends Api[KConnect]("connect") {
-
-  override protected def createInstance(props: Properties): KConnect = {
-    new KConnect(props)
-  }
-
-}
-
 class KConnect(val props: Properties) {
 
   import responses._
@@ -70,8 +62,6 @@ class KConnect(val props: Properties) {
 
     new KafkaConnectClient(config)
   }
-
-  def reload(): Unit = KConnect.reload()
 
   def serverVersion: ServerVersion = client.getConnectServerVersion
 

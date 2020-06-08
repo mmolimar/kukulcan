@@ -8,31 +8,52 @@ import org.apache.kafka.common.acl.AclBindingFilter;
 import org.apache.kafka.common.security.auth.KafkaPrincipal;
 import org.apache.kafka.server.authorizer.Authorizer;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.github.mmolimar.kukulcan.java.KUtils.*;
 
-@SuppressWarnings("WeakerAccess")
 public class KAdmin {
 
-    public final Admin admin;
-    public final String servers;
-    public final KAdminTopics topics;
-    public final KAdminConfigs configs;
-    public final KAdminAcls acls;
-    public final KAdminMetrics metrics;
+    private final Admin client;
+    private final String servers;
+    private final KAdminTopics topics;
+    private final KAdminConfigs configs;
+    private final KAdminAcls acls;
+    private final KAdminMetrics metrics;
 
-    KAdmin(com.github.mmolimar.kukulcan.KAdmin admin) {
-        this.admin = admin.client();
+    KAdmin(Properties props) {
+        com.github.mmolimar.kukulcan.KAdmin admin = new com.github.mmolimar.kukulcan.KAdmin(props);
+        this.client = admin.client();
         this.servers = admin.servers();
         this.configs = new KAdminConfigs(admin.configs());
         this.topics = new KAdminTopics(admin.topics());
         this.acls = new KAdminAcls(admin.acls());
         this.metrics = new KAdminMetrics(admin.metrics());
+    }
+
+    public Admin client() {
+        return client;
+    }
+
+    public String servers() {
+        return servers;
+    }
+
+    public KAdminTopics topics() {
+        return topics;
+    }
+
+    public KAdminConfigs configs() {
+        return configs;
+    }
+
+    public KAdminAcls acls() {
+        return acls;
+    }
+
+    public KAdminMetrics metrics() {
+        return metrics;
     }
 
     public static class KAdminTopics {
@@ -224,7 +245,6 @@ public class KAdmin {
 
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static class KAdminAcls {
 
         private final com.github.mmolimar.kukulcan.KAdmin.KAdminAcls acls;
