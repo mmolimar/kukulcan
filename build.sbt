@@ -8,6 +8,28 @@ val repos = Seq(
 lazy val settings = new {
   val projectScalaVersion = "2.12.11"
 
+  val dependencies = new {
+    val kafkaVersion = "2.5.0"
+    val kafkaConnectClientVersion = "3.1.0"
+    val circeVersion = "0.12.3"
+    val asciiGraphsVersion = "0.0.6"
+
+    val api = Seq(
+      "org.apache.kafka" %% "kafka" % kafkaVersion,
+      "org.apache.kafka" % "kafka-clients" % kafkaVersion,
+      "org.apache.kafka" % "kafka-tools" % kafkaVersion,
+      "org.apache.kafka" %% "kafka-streams-scala" % kafkaVersion,
+      "org.apache.kafka" % "kafka-streams-test-utils" % kafkaVersion,
+      "org.scala-lang" % "scala-compiler" % projectScalaVersion,
+      "org.sourcelab" % "kafka-connect-client" % kafkaConnectClientVersion,
+      "io.circe" %% "circe-core" % circeVersion,
+      "io.circe" %% "circe-generic" % circeVersion,
+      "io.circe" %% "circe-parser" % circeVersion,
+      "com.github.mutcianm" %% "ascii-graphs" % asciiGraphsVersion
+    )
+    val repl = Seq.empty
+    val root = Seq.empty
+  }
   val common = Seq(
     organization := "com.github.mmolimar",
     version := projectVersion,
@@ -26,7 +48,13 @@ lazy val settings = new {
   )
   val root = Seq(
     name := "kukulcan",
-    publish / skip := true
+    javacOptions ++= Seq(
+      "--add-exports=jdk.jshell/jdk.internal.jshell.tool=ALL-UNNAMED"
+    ),
+    packExpandedClasspath := true,
+    packGenerateMakefile := false,
+    publish / skip := true,
+    libraryDependencies ++= dependencies.root
   )
   val api = Seq(
     name := "kukulcan-api",
@@ -48,31 +76,10 @@ lazy val settings = new {
       }.taskValue
     },
     javacOptions ++= Seq(
-      "--add-modules=jdk.jshell",
-      "--add-exports=jdk.jshell/jdk.internal.jshell.tool=ALL-UNNAMED",
-      "--add-exports=jdk.jshell/jdk.jshell=ALL-UNNAMED"
-    )
+      "--add-exports=jdk.jshell/jdk.internal.jshell.tool=ALL-UNNAMED"
+    ),
+    libraryDependencies ++= dependencies.repl
   )
-  val dependencies = new {
-    val kafkaVersion = "2.5.0"
-    val kafkaConnectClientVersion = "3.1.0"
-    val circeVersion = "0.12.3"
-    val asciiGraphsVersion = "0.0.6"
-
-    val api = Seq(
-      "org.apache.kafka" %% "kafka" % kafkaVersion,
-      "org.apache.kafka" % "kafka-clients" % kafkaVersion,
-      "org.apache.kafka" % "kafka-tools" % kafkaVersion,
-      "org.apache.kafka" %% "kafka-streams-scala" % kafkaVersion,
-      "org.apache.kafka" % "kafka-streams-test-utils" % kafkaVersion,
-      "org.scala-lang" % "scala-compiler" % projectScalaVersion,
-      "org.sourcelab" % "kafka-connect-client" % kafkaConnectClientVersion,
-      "io.circe" %% "circe-core" % circeVersion,
-      "io.circe" %% "circe-generic" % circeVersion,
-      "io.circe" %% "circe-parser" % circeVersion,
-      "com.github.mutcianm" %% "ascii-graphs" % asciiGraphsVersion
-    )
-  }
 }
 
 lazy val apiProject = project
@@ -94,8 +101,6 @@ lazy val root = project
   .enablePlugins(PackPlugin)
   .settings(
     settings.common,
-    settings.root,
-    packExpandedClasspath := true,
-    packGenerateMakefile := false
+    settings.root
   )
   .aggregate(apiProject, replProject)
