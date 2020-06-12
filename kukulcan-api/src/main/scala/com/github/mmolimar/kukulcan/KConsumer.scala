@@ -7,6 +7,12 @@ import org.apache.kafka.tools.{ToolsUtils => JToolsUtils}
 
 import scala.collection.JavaConverters._
 
+object KConsumer {
+
+  def apply[K, V](props: Properties): KConsumer[K, V] = new KConsumer(props)
+
+}
+
 class KConsumer[K, V](val props: Properties) extends KafkaConsumer[K, V](props) {
 
   import org.apache.kafka.common.{Metric, MetricName}

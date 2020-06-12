@@ -23,27 +23,28 @@ package object kukulcan {
     KProducerApi.reload()
     KConnectApi.reload()
     KStreamsApi.reload()
+    println("Done!")
   }
 
   private[kukulcan] object KAdminApi extends KApi[KAdmin]("admin") {
-    override protected def createInstance(props: Properties): KAdmin = new KAdmin(props)
+    override protected def createInstance(props: Properties): KAdmin = KAdmin(props)
   }
 
   private[kukulcan] object KConsumerApi extends KApi[KConsumer[AnyRef, AnyRef]]("consumer") {
-    override protected def createInstance(props: Properties): KConsumer[AnyRef, AnyRef] = new KConsumer(props)
+    override protected def createInstance(props: Properties): KConsumer[AnyRef, AnyRef] = KConsumer(props)
   }
 
   private[kukulcan] object KProducerApi extends KApi[KProducer[AnyRef, AnyRef]]("producer") {
-    override protected def createInstance(props: Properties): KProducer[AnyRef, AnyRef] = new KProducer(props)
+    override protected def createInstance(props: Properties): KProducer[AnyRef, AnyRef] = KProducer(props)
   }
 
   private[kukulcan] object KConnectApi extends KApi[KConnect]("connect") {
-    override protected def createInstance(props: Properties): KConnect = new KConnect(props)
+    override protected def createInstance(props: Properties): KConnect = KConnect(props)
   }
 
   private[kukulcan] object KStreamsApi extends KApi[Topology => KStreams]("streams") {
     override protected def createInstance(props: Properties): Topology => KStreams = {
-      topology: Topology => new KStreams(topology, props)
+      topology: Topology => KStreams(topology, props)
     }
   }
 

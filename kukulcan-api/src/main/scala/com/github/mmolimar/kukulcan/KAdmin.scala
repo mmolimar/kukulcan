@@ -9,6 +9,12 @@ import org.apache.kafka.clients.admin._
 import scala.collection.JavaConverters._
 import scala.util.Try
 
+object KAdmin {
+
+  def apply(props: Properties): KAdmin = new KAdmin(props)
+
+}
+
 class KAdmin(val props: Properties) {
 
   val servers: String = props.getProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG)

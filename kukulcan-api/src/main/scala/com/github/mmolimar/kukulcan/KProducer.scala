@@ -7,6 +7,12 @@ import org.apache.kafka.tools.{ToolsUtils => JToolsUtils}
 
 import scala.collection.JavaConverters._
 
+object KProducer {
+
+  def apply[K, V](props: Properties): KProducer[K, V] = new KProducer(props)
+
+}
+
 class KProducer[K, V](val props: Properties) extends KafkaProducer[K, V](props) {
 
   import org.apache.kafka.common.{Metric, MetricName}

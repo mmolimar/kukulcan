@@ -7,6 +7,12 @@ import org.apache.kafka.tools.{ToolsUtils => JToolsUtils}
 
 import scala.collection.JavaConverters._
 
+object KStreams {
+
+  def apply(topology: Topology, props: Properties): KStreams = new KStreams(topology, props)
+
+}
+
 class KStreams(val topology: Topology, val props: Properties) extends KafkaStreams(topology, props) {
 
   import _root_.java.util.{Set => JSet}

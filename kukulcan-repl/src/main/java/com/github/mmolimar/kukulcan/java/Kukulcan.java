@@ -71,5 +71,6 @@ public class Kukulcan {
         kproducerApi.reload();
         kconnectApi.reload();
         kStreamsApi.reload();
+        System.out.println("Done!");
     }
 }
