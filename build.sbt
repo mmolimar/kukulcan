@@ -99,6 +99,7 @@ lazy val root = project
   .in(file("."))
   .dependsOn(apiProject, replProject)
   .enablePlugins(PackPlugin)
+  .enablePlugins(KukulcanPackPlugin)
   .settings(
     settings.common,
     settings.root
