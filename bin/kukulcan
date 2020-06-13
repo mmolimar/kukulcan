@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+source "$(dirname "$0")"/find-kukulcan-home
+
+for arg do
+  shift
+  case $arg in
+    -D*) KUKULCAN_OPTS="$KUKULCAN_OPTS $arg" ;;
+      *) set -- "$@" "$arg" ;;
+  esac
+done
+
+eval exec "\"$JAVA_EXEC\"" ${KUKULCAN_OPTS} -cp "\"${KUKULCAN_CLASSPATH}\"" \
+  com.github.mmolimar.kukulcan.repl.KukulcanRepl
+
+exit $?

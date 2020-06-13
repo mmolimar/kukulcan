@@ -1,0 +1,27 @@
+#!/usr/bin/env amm
+
+val kukulcanVersion = "0.1.0-SNAPSHOT"
+val predefCode =
+  s"""
+     |import coursierapi.MavenRepository
+     |
+     |interp.repositories.update(
+     |  List(
+     |  coursierapi.Repository.ivy2Local,
+     |  coursierapi.Repository.central,
+     |  MavenRepository.of("https://packages.confluent.io/maven/"))
+     |)
+     |@
+     |
+     |import $$ivy.`com.github.mmolimar::kukulcan-repl:$kukulcanVersion`
+     |import com.github.mmolimar.kukulcan
+     |import os._
+     |
+     |print(kukulcan.repl.banner)
+     |
+     |""".stripMargin
+
+ammonite.Main.main(Array(
+  "--banner", "",
+  "--predef-code", predefCode,
+))

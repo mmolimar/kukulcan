@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+cygwin=false
+mingw=false
+darwin=false
+case "`uname`" in
+  CYGWIN*) cygwin=true
+          ;;
+  MINGW*) mingw=true
+          ;;
+  Darwin*) darwin=true
+           if [ -z "$JAVA_VERSION" ] ; then
+             JAVA_VERSION="CurrentJDK"
+           else
+             echo "Using Java version: $JAVA_VERSION" 1>&2
+           fi
+           if [ -z "$JAVA_HOME" ] ; then
+             JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/${JAVA_VERSION}/Home
+           fi
+           ;;
+esac
+
+if $cygwin; then
+  [ -n "$JAVA_HOME" ] &&
+    JAVA_HOME=`cygpath -am "$JAVA_HOME"`
+fi
+
+if $mingw ; then
+  [ -n "$JAVA_HOME" ] &&
+    JAVA_HOME="`(cd "$JAVA_HOME"; pwd -W | sed 's|/|\\\\|g')`"
+fi
+
+if [ -n "${JAVA_HOME}" ]; then
+  export JAVA_EXEC="${JAVA_HOME}/bin/java"
+else
+  if [ "$(command -v java)" ]; then
+    export JAVA_EXEC="java"
+  else
+    echo "JAVA_HOME is not set." >&2
+    exit 1
+  fi
+fi
+
+if [ -z "${KUKULCAN_HOME}" ]; then
+  CURRENT="$0"
+  while [ -h "$CURRENT" ] ; do
+    ls=`ls -ld "$CURRENT"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+      CURRENT="$link"
+    else
+      CURRENT="`dirname "$CURRENT"`/$link"
+    fi
+  done
+  saveddir=`pwd`
+  KUKULCAN_HOME=`dirname "$CURRENT"`/..
+  KUKULCAN_HOME=`cd "$KUKULCAN_HOME" && pwd`
+  cd "$saveddir"
+fi
+
+KUKULCAN_LIBS_DIR="${KUKULCAN_HOME}/libs"
+if [ ! -d "$KUKULCAN_LIBS_DIR" ] || [ -z "$(ls -A -- "$KUKULCAN_LIBS_DIR")" ]; then
+  echo "Libs directory '$KUKULCAN_LIBS_DIR' does not exist or is empty."
+  echo "Execute the command 'sbt kukulcan' to create the libs directory."
+  exit 1
+fi
+
+export KUKULCAN_CLASSPATH="$KUKULCAN_LIBS_DIR/*"
