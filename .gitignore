@@ -6,25 +6,31 @@ syntax: glob
 *.bak
 *.off
 *.old
+.DS_Store
 
-# eclipse conf file
+# IDE
 .settings
 .classpath
 .project
 .manager
-
-# idea
 .idea
 *.iml
+.pydevproject
+.coverage
 
 # building
+.cache
 target
 build
+libs
+venv
 null
 tmp
 temp
 test-output
 build.log
+python/*.egg-info
+python/setup.cfg
 
 # other scm
 .svn
