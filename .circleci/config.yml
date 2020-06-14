@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/openjdk:8-jdk
+      - image: circleci/openjdk:11-jdk
 
     working_directory: ~/kukulcan
 
@@ -16,7 +16,7 @@ jobs:
           keys:
             - v1-dependencies-{{ checksum "build.sbt" }}
             - v1-dependencies-
-      - run: cat /dev/null | sbt clean publishLocal
+      - run: cat /dev/null | sbt clean kukulcan publishLocal
       - save_cache:
           paths:
             - ~/.m2
