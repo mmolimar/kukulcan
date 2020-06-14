@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+source "$(dirname "$0")"/find-kukulcan-home
+
+if [[ -z "$KUKULCAN_PYTHON" ]]; then
+  KUKULCAN_PYTHON=python
+fi
+
+eval exec "\"$KUKULCAN_PYTHON\"" -i -m pykukulcan.repl --classpath "\"${KUKULCAN_CLASSPATH}\""
+
+exit $?

@@ -80,6 +80,9 @@ lazy val settings = new {
     ),
     libraryDependencies ++= dependencies.repl
   )
+  val pykukulcan = Seq(
+    name := "pykukulcan"
+  )
 }
 
 lazy val apiProject = project
@@ -94,6 +97,11 @@ lazy val replProject = project
   .settings(
     settings.common,
     settings.repl
+  )
+lazy val pykukulcanProject = project
+  .in(file("python"))
+  .settings(
+    settings.pykukulcan
   )
 lazy val root = project
   .in(file("."))
