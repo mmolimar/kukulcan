@@ -31,6 +31,7 @@ test-output
 build.log
 python/*.egg-info
 python/setup.cfg
+__pycache__
 
 # other scm
 .svn
