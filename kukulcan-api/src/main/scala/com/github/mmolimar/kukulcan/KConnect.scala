@@ -12,6 +12,11 @@ object KConnect {
 
 }
 
+/**
+ * A class to interact with Kafka Connect API via HTTP(s).
+ *
+ * @param props Properties with the configuration.
+ */
 class KConnect(val props: Properties) {
 
   import responses._
@@ -69,59 +74,184 @@ class KConnect(val props: Properties) {
     new KafkaConnectClient(config)
   }
 
+  /**
+   * Get the server version.
+   *
+   * @return A { @code ServerVersion} instance.
+   */
   def serverVersion: ServerVersion = client.getConnectServerVersion
 
+  /**
+   * Add a new connector.
+   *
+   * @param name   Connector name.
+   * @param config { @code Map} with the connector configurations.
+   * @return A { @code Connector} with the connector definition.
+   */
   def addConnector(name: String, config: Map[String, String]): Connector = {
     client.addConnector(new JNewConnectorDefinition(name, config.asJava))
   }
 
+  /**
+   * Get a connector.
+   *
+   * @param name Connector name.
+   * @return A { @code Connector} with the connector definition.
+   */
   def connector(name: String): Connector = client.getConnector(name)
 
+  /**
+   * Get the connector configurations.
+   *
+   * @param name Connector name.
+   * @return A { @code Map} with the connector configurations.
+   */
   def connectorConfig(name: String): Map[String, String] = client.getConnectorConfig(name).asScala.toMap
 
+  /**
+   * Get the connector plugins availables.
+   *
+   * @return A { @code ConnectorPlugin} list with all plugins.
+   */
   def connectorPlugins: Seq[ConnectorPlugin] = client.getConnectorPlugins.asScala.map(toConnectorPlugin).toSeq
 
+  /**
+   * Get the connector status.
+   *
+   * @param name Connector name.
+   * @return A { @code ConnectorStatus} with the connector status.
+   */
   def connectorStatus(name: String): ConnectorStatus = client.getConnectorStatus(name)
 
+  /**
+   * Get the connector tasks.
+   *
+   * @param name Connector name.
+   * @return A { @code Task} list with its connector tasks.
+   */
   def connectorTasks(name: String): Seq[Task] = client.getConnectorTasks(name).asScala.map(toTask).toSeq
 
+  /**
+   * Get the connector task status.
+   *
+   * @param name   Connector name.
+   * @param taskId Task id to get the status.
+   * @return A { @code Task} with its status.
+   */
   def connectorTaskStatus(name: String, taskId: Int): TaskStatus = client.getConnectorTaskStatus(name, taskId)
 
+  /**
+   * Get the set of topics that a specific connector is using.
+   *
+   * @param name Connector name.
+   * @return A { @code ConnectorTopics} with the topics used.
+   */
   def connectorTopics(name: String): ConnectorTopics = client.getConnectorTopics(name)
 
+  /**
+   * Validate a connector plugin config.
+   *
+   * @param name   Connector name.
+   * @param config Configuration values for the connector.
+   * @return A { @code ConnectorPluginValidation} with the results of the validation
+   */
   def validateConnectorPluginConfig(name: String, config: Map[String, String]): ConnectorPluginValidation = {
     client.validateConnectorPluginConfig(
       new JConnectorPluginConfigDefinition(name, config.asJava)
     )
   }
 
+  /**
+   * Update the connector's configuration.
+   *
+   * @param name   Connector name.
+   * @param config Configuration values to set.
+   * @return A { @code Connector} with the connector definition.
+   */
   def updateConnector(name: String, config: Map[String, String]): Connector = {
     client.updateConnectorConfig(name, config.asJava)
   }
 
+  /**
+   * Pause a connector.
+   *
+   * @param name Connector name.
+   * @return If the connector could be paused.
+   */
   def pauseConnector(name: String): Boolean = client.pauseConnector(name)
 
+  /**
+   * Reset the active topics for the connector.
+   *
+   * @param name Connector name.
+   * @return If the connector could be reset.
+   */
   def resetConnectorTopics(name: String): Boolean = client.resetConnectorTopics(name)
 
+  /**
+   * Resume the connector.
+   *
+   * @param name Connector name.
+   * @return If the connector could be resumed.
+   */
   def resumeConnector(name: String): Boolean = client.resumeConnector(name)
 
+  /**
+   * Restart the connector.
+   *
+   * @param name Connector name.
+   * @return If the connector could be restarted.
+   */
   def restartConnector(name: String): Boolean = client.restartConnector(name)
 
+  /**
+   * Restart a task in the connector.
+   *
+   * @param name   Connector name.
+   * @param taskId Task to restart.
+   * @return If the task could be restarted.
+   */
   def restartConnectorTask(name: String, taskId: Int): Boolean = client.restartConnectorTask(name, taskId)
 
+  /**
+   * Delete a connector.
+   *
+   * @param name Connector name.
+   * @return If the task could be deleted.
+   */
   def deleteConnector(name: String): Boolean = client.deleteConnector(name)
 
+  /**
+   * Get all connectors deployed.
+   *
+   * @return A list with the connector names.
+   */
   def connectors: Seq[String] = client.getConnectors.asScala.toSeq
 
+  /**
+   * Get all connectors deployed, including the definition for each connector.
+   *
+   * @return A { @code ConnectorExpandedInfo} with the extended connector definition.
+   */
   def connectorsWithExpandedInfo: ConnectorExpandedInfo = client.getConnectorsWithExpandedInfo
 
+  /**
+   * Get all connectors deployed, including the status for each connector.
+   *
+   * @return A { @code ConnectorExpandedStatus} with the extended status info.
+   */
   def connectorsWithExpandedStatus: ConnectorExpandedStatus = client.getConnectorsWithExpandedStatus
 
+  /**
+   * Get all connectors deployed, including all metadata available.
+   *
+   * @return A { @code ConnectorExpandedMetadata} with all metadata available for each connector.
+   */
   def connectorsWithAllExpandedMetadata: ConnectorExpandedMetadata = client.getConnectorsWithAllExpandedMetadata
 
 }
 
-private[kukulcan] object responses {
+object responses {
 
   import io.circe._
   import io.circe.generic.semiauto._
@@ -146,8 +276,17 @@ private[kukulcan] object responses {
   private implicit val taskStatusEncoder: Encoder[TaskStatus] = deriveEncoder[TaskStatus]
 
   protected abstract class JsonSupport[T](implicit encoder: Encoder[T]) {
+    /**
+     * Convert the instance {@code T} to JSON format.
+     *
+     * @return The instance in JSON format
+     */
     def toJson: String = convertToJson(this.asInstanceOf[T])(encoder)
 
+    /**
+     * Print the instance {@code T} in JSON format.
+     *
+     */
     def printJson(): Unit = println(toJson)
   }
 

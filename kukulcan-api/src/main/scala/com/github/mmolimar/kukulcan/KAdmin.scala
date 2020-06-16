@@ -15,15 +15,50 @@ object KAdmin {
 
 }
 
+/**
+ * An enriched implementation of the {@code org.apache.kafka.clients.admin.KafkaAdminClient} class for
+ * administrative operations in Kafka.
+ *
+ * Provides a set of tools grouped by functionality: {@code topics}, {@code configs}, {@code acls} and
+ * {@code metrics}.
+ *
+ * @param props Properties with the configuration.
+ */
 class KAdmin(val props: Properties) {
 
+  /**
+   * Broker servers to connect to.
+   */
   val servers: String = props.getProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG)
+
+  /**
+   * Native {@code org.apache.kafka.clients.admin.Admin} client used by this class.
+   */
   val client: Admin = Admin.create(props)
+
+  /**
+   * An instance of the {@link KAdminTopics} to manage topics.
+   */
   val topics = new KAdminTopics
+
+  /**
+   * An instance of the {@link KAdminConfigs} to manage configurations.
+   */
   val configs = new KAdminConfigs
+
+  /**
+   * An instance of the {@link KAdminAcls} to manage ACLs.
+   */
   val acls = new KAdminAcls
+
+  /**
+   * An instance of the {@link KAdminMetrics} to see the metrics.
+   */
   val metrics = new KAdminMetrics
 
+  /**
+   * Class which includes all administrative functionalities related with topics.
+   */
   class KAdminTopics {
 
     import kafka.admin.TopicCommand.{PartitionDescription, TopicDescription}
@@ -35,6 +70,17 @@ class KAdmin(val props: Properties) {
     import org.apache.kafka.common.internals.Topic
     import org.apache.kafka.common.{TopicPartition, TopicPartitionInfo}
 
+    /**
+     * Create a new topic.
+     * This operation is not transactional so it may succeed for some topics while fail for others.
+     *
+     * @param name              Topic name.
+     * @param partitions        Number of partitions.
+     * @param replicationFactor Replication factor.
+     * @param configs           Extra configuration options for the topic.
+     * @param options           { @code Option} extra create topics options.
+     * @return If the topic was created or not.
+     */
     def createTopic(
                      name: String,
                      partitions: Int,
@@ -46,17 +92,35 @@ class KAdmin(val props: Properties) {
       createTopics(Seq(topic), options)
     }
 
+    /**
+     * Create a new topic.
+     * This operation is not transactional so it may succeed for some topics while fail for others.
+     *
+     * @param name               Topic name.
+     * @param replicaAssignments A { @code Map} from partition id to replica ids.
+     * @param configs            Extra configuration options for the topic.
+     * @param options            { @code Option} extra create topics options.
+     * @return If the topic was created or not.
+     */
     def createTopicWithReplicasAssignments(
                                             name: String,
-                                            replicasAssignments: Map[Integer, Seq[Integer]],
+                                            replicaAssignments: Map[Integer, Seq[Integer]],
                                             configs: Map[String, String] = Map.empty,
                                             options: Option[CreateTopicsOptions] = None
                                           ): Boolean = {
-      val topic = new NewTopic(name, replicasAssignments.map(r => r._1 -> r._2.asJava).asJava)
+      val topic = new NewTopic(name, replicaAssignments.map(r => r._1 -> r._2.asJava).asJava)
         .configs(configs.asJava)
       createTopics(Seq(topic), options)
     }
 
+    /**
+     * Create a batch of new topics.
+     * This operation is not transactional so it may succeed for some topics while fail for others.
+     *
+     * @param newTopics Topic list.
+     * @param options   { @code Option} extra create topics options.
+     * @return If the topics were created or not.
+     */
     def createTopics(newTopics: Seq[NewTopic], options: Option[CreateTopicsOptions] = None): Boolean = {
       val opt = options.getOrElse(new CreateTopicsOptions().validateOnly(false))
       val createdTopics = client.createTopics(newTopics.asJava, opt)
@@ -93,6 +157,13 @@ class KAdmin(val props: Properties) {
       newTopics.forall(newTopic => createdTopics.contains(newTopic.name()))
     }
 
+    /**
+     * List the topics available in the cluster.
+     *
+     * @param topicWhitelist        { @code Option} whitelist to filter the available topics.
+     * @param excludeInternalTopics If exclude internal topics in the returned list.
+     * @return A list with topic names.
+     */
     def getTopics(topicWhitelist: Option[String] = None, excludeInternalTopics: Boolean = false): Seq[String] = {
       val allTopics = (if (excludeInternalTopics) {
         client.listTopics
@@ -108,6 +179,12 @@ class KAdmin(val props: Properties) {
       }
     }
 
+    /**
+     * Print the topics available in the cluster.
+     *
+     * @param topicWhitelist        { @code Option} whitelist to filter the available topics.
+     * @param excludeInternalTopics If exclude internal topics in the returned list.
+     */
     def listTopics(topicWhitelist: Option[String] = None, excludeInternalTopics: Boolean = false): Unit = {
       val topics = getTopics(topicWhitelist, excludeInternalTopics)
       if (topics.isEmpty) {
@@ -117,13 +194,27 @@ class KAdmin(val props: Properties) {
       }
     }
 
+    /**
+     * Get the partition description related for a topic.
+     *
+     * @param topic   Topic name.
+     * @param options { @code Option} extra describe topics options.
+     * @return { @code Option} topic info with its partition description.
+     */
     def getTopicAndPartitionDescription(
                                          topic: String,
                                          options: Option[DescribeTopicsOptions]
-                                       ): Seq[(TopicDescription, Seq[PartitionDescription])] = {
-      getTopicAndPartitionDescription(Seq(topic), options)
+                                       ): Option[(TopicDescription, Seq[PartitionDescription])] = {
+      getTopicAndPartitionDescription(Seq(topic), options).headOption
     }
 
+    /**
+     * Get the partition description in the specified topic list.
+     *
+     * @param topics  Topic list.
+     * @param options { @code Option} extra describe topics options.
+     * @return A list with the topic info with its partition description.
+     */
     def getTopicAndPartitionDescription(
                                          topics: Seq[String],
                                          options: Option[DescribeTopicsOptions] = None
@@ -152,6 +243,14 @@ class KAdmin(val props: Properties) {
         }.toSeq
     }
 
+    /**
+     * Print the partition description related for a topic.
+     *
+     * @param name           Topic name.
+     * @param options        { @code Option} extra describe topics options.
+     * @param withConfigs    If including config info.
+     * @param withPartitions If including partitions info.
+     */
     def describeTopic(
                        name: String,
                        options: Option[DescribeTopicsOptions] = None,
@@ -161,6 +260,14 @@ class KAdmin(val props: Properties) {
       describeTopics(Seq(name), options, withConfigs, withPartitions)
     }
 
+    /**
+     * Print the partition description in the specified topic list.
+     *
+     * @param topics         Topic name.
+     * @param options        { @code Option} extra describe topics options.
+     * @param withConfigs    If including config info.
+     * @param withPartitions If including partitions info.
+     */
     def describeTopics(
                         topics: Seq[String],
                         options: Option[DescribeTopicsOptions] = None,
@@ -191,8 +298,18 @@ class KAdmin(val props: Properties) {
       }
     }
 
+    /**
+     * Delete a topic in the cluster.
+     *
+     * @param name Topic name.
+     */
     def deleteTopic(name: String): Unit = deleteTopics(Seq(name))
 
+    /**
+     * Delete topics in the cluster.
+     *
+     * @param topics Topic list.
+     */
     def deleteTopics(topics: Seq[String]): Unit = {
       val availableTopics = getTopics()
       topics.foreach { t =>
@@ -205,6 +322,14 @@ class KAdmin(val props: Properties) {
       }
     }
 
+    /**
+     * Get the new partition distribution for a topic (does not modify anything in the cluster).
+     *
+     * @param topic             Topic name.
+     * @param partitions        Number of partitions.
+     * @param replicaAssignment A { @code Map} from partition id to replica ids.
+     * @return A { @code Map} with the topic and its new partitions.
+     */
     def getNewPartitionsDistribution(
                                       topic: String,
                                       partitions: Int,
@@ -213,6 +338,14 @@ class KAdmin(val props: Properties) {
       getNewPartitionsDistribution(Seq(topic), partitions, replicaAssignment)
     }
 
+    /**
+     * Get the new partition distribution for a topic list (does not modify anything in the cluster).
+     *
+     * @param topics            Topic list.
+     * @param partitions        Number of partitions.
+     * @param replicaAssignment A { @code Map} from partition id to replica ids.
+     * @return A { @code Map} with the topic and its new partitions.
+     */
     def getNewPartitionsDistribution(
                                       topics: Seq[String],
                                       partitions: Int,
@@ -245,10 +378,25 @@ class KAdmin(val props: Properties) {
       }.toMap
     }
 
+    /**
+     * Modify the new partition distribution for a topic.
+     *
+     * @param name              Topic name.
+     * @param partitions        Number of partitions.
+     * @param replicaAssignment A { @code Map} from partition id to replica ids.
+     */
     def alterTopic(name: String, partitions: Int, replicaAssignment: Map[Int, Seq[Int]] = Map.empty): Unit = {
       alterTopics(Seq(name), partitions, replicaAssignment)
     }
 
+    /**
+     * Modify the new partition distribution for a topic list.
+     *
+     * @param topics            Topic list.
+     * @param partitions        Number of partitions.
+     * @param replicaAssignment A { @code Map} from partition id to replica ids.
+     * @return A { @code Map} with the topic and its new partitions.
+     */
     def alterTopics(topics: Seq[String], partitions: Int, replicaAssignment: Map[Int, Seq[Int]] = Map.empty): Unit = {
       val newPartitions = getNewPartitionsDistribution(topics, partitions, replicaAssignment).asJava
       client.createPartitions(newPartitions).all.get
@@ -257,6 +405,9 @@ class KAdmin(val props: Properties) {
 
   }
 
+  /**
+   * Class which includes all administrative functionalities related with configurations.
+   */
   class KAdminConfigs {
 
     import _root_.java.util.Collections
@@ -323,6 +474,15 @@ class KAdmin(val props: Properties) {
       }
     }
 
+    /**
+     * Modify a topic configuration.
+     * Updates are not transactional so they may succeed for some resources while fail for others. The configs for
+     * a particular resource are updated atomically.
+     *
+     * @param name               Topic name.
+     * @param configsToBeAdded   { @code Map} with the configs to add.
+     * @param configsToBeDeleted { @code Seq} with the configs to delete.
+     */
     def alterTopicConfig(
                           name: String,
                           configsToBeAdded: Map[String, String],
@@ -341,6 +501,15 @@ class KAdmin(val props: Properties) {
       printAlterConfigResult(ConfigType.Topic, name)
     }
 
+    /**
+     * Modify a broker configuration.
+     * Updates are not transactional so they may succeed for some resources while fail for others. The configs for
+     * a particular resource are updated atomically.
+     *
+     * @param brokerId           { @code Option} broker to update. If { @code None}, apply to all brokers.
+     * @param configsToBeAdded   { @code Map} with the configs to add.
+     * @param configsToBeDeleted { @code Seq} with the configs to delete.
+     */
     def alterBrokerConfig(
                            brokerId: Option[Int],
                            configsToBeAdded: Map[String, String],
@@ -368,6 +537,15 @@ class KAdmin(val props: Properties) {
       printAlterConfigResult(ConfigType.Broker, brokerId.map(_.toString).getOrElse(""))
     }
 
+    /**
+     * Modify a broker logger configuration.
+     * Updates are not transactional so they may succeed for some resources while fail for others. The configs for
+     * a particular resource are updated atomically.
+     *
+     * @param brokerId           { @code Option} broker to update. If { @code None}, apply to all brokers.
+     * @param configsToBeAdded   { @code Map} with the configs to add.
+     * @param configsToBeDeleted { @code Seq} with the configs to delete.
+     */
     def alterBrokerLoggerConfig(
                                  brokerId: Option[Int],
                                  configsToBeAdded: Map[String, String],
@@ -397,10 +575,24 @@ class KAdmin(val props: Properties) {
       entities.flatMap(entity => getConfig(entityType, entity, includeSynonyms = true, describeAll))
     }
 
+    /**
+     * Get each config entry for the topic(s).
+     *
+     * @param name        { @code Option} topic to describe. If not set, apply to all topics.
+     * @param describeAll If describe all configs.
+     * @return A list with all config entries.
+     */
     def getDescribeTopicConfig(name: Option[String], describeAll: Boolean = true): Seq[ConfigEntry] = {
       getDescribeConfig(name.map(Seq(_)).getOrElse(topics.getTopics()), ConfigType.Topic, describeAll)
     }
 
+    /**
+     * Get each config entry for the broker(s).
+     *
+     * @param brokerId    { @code Option} broker id to describe. If not set, apply to all brokers.
+     * @param describeAll If describe all configs.
+     * @return A list with all config entries.
+     */
     def getDescribeBrokerConfig(brokerId: Option[Int], describeAll: Boolean = true): Seq[ConfigEntry] = {
       val brokerList = brokerId.map(id => Seq(id.toString)).getOrElse {
         client.describeCluster.nodes.get.asScala
@@ -409,6 +601,13 @@ class KAdmin(val props: Properties) {
       getDescribeConfig(brokerList, ConfigType.Broker, describeAll)
     }
 
+    /**
+     * Get each config entry for the broker(s) logger.
+     *
+     * @param brokerId    { @code Option} broker id to describe. If not set, apply to all brokers.
+     * @param describeAll If describe all configs.
+     * @return A list with all config entries.
+     */
     def getDescribeBrokerLoggerConfig(brokerId: Option[Int], describeAll: Boolean = true): Seq[ConfigEntry] = {
       val brokerList = brokerId.map(id => Seq(id.toString)).getOrElse {
         client.describeCluster.nodes.get.asScala
@@ -431,16 +630,37 @@ class KAdmin(val props: Properties) {
       }
     }
 
+    /**
+     * Print each config entry for the topic(s).
+     *
+     * @param name        { @code Option} topic to describe. If not set, apply to all topics.
+     * @param describeAll If describe all configs.
+     * @return A list with all config entries.
+     */
     def describeTopicConfig(name: Option[String], describeAll: Boolean = true): Unit = {
       val configs = getDescribeTopicConfig(name, describeAll)
       printDescribeConfig(name, ConfigType.Topic, configs, describeAll)
     }
 
+    /**
+     * Print each config entry for the broker(s).
+     *
+     * @param brokerId    { @code Option} broker id to describe. If not set, apply to all brokers.
+     * @param describeAll If describe all configs.
+     * @return A list with all config entries.
+     */
     def describeBrokerConfig(brokerId: Option[Int], describeAll: Boolean = true): Unit = {
       val configs = getDescribeBrokerConfig(brokerId, describeAll)
       printDescribeConfig(brokerId, ConfigType.Broker, configs, describeAll)
     }
 
+    /**
+     * Print each config entry for the broker(s) logger.
+     *
+     * @param brokerId    { @code Option} broker id to describe. If not set, apply to all brokers.
+     * @param describeAll If describe all configs.
+     * @return A list with all config entries.
+     */
     def describeBrokerLoggerConfig(brokerId: Option[Int], describeAll: Boolean = true): Unit = {
       val configs = getDescribeBrokerLoggerConfig(brokerId, describeAll)
       printDescribeConfig(brokerId, BrokerLoggerConfigType, configs, describeAll)
@@ -448,6 +668,9 @@ class KAdmin(val props: Properties) {
 
   }
 
+  /**
+   * Class which includes all administrative functionalities related with ACLs.
+   */
   class KAdminAcls {
 
     import kafka.security.authorizer.{AclAuthorizer, AuthorizerUtils}
@@ -458,7 +681,16 @@ class KAdmin(val props: Properties) {
 
     import scala.compat.java8.OptionConverters._
 
-    def defaultAuthorizer(forceDefault: Boolean): Option[Authorizer] = {
+    private def defaultAuthorizer(force: Boolean): Option[Authorizer] = {
+      if (force) defaultAuthorizer else None
+    }
+
+    /**
+     * Create a default Kafka Authorizer.
+     *
+     * @return An { @code Option} authorizer for the Kafka brokers.
+     */
+    def defaultAuthorizer: Option[Authorizer] = {
       props.asScala.get("authorizer.class.name").orElse(Some(classOf[AclAuthorizer].getName))
         .map { className =>
           val authorizer = AuthorizerUtils.createAuthorizer(className)
@@ -467,6 +699,14 @@ class KAdmin(val props: Properties) {
         }
     }
 
+    /**
+     * Adds ACLs in the Kafka cluster.
+     * This operation is not transactional so it may succeed for some ACLs while fail for others.
+     *
+     * @param aclBindings     A list with the binding between a resource pattern and an access control entry.
+     * @param options         Extra configuration options for creating the ACLs.
+     * @param forceAuthorizer If force the use of an authorizer.
+     */
     def addAcls(
                  aclBindings: Seq[AclBinding],
                  options: CreateAclsOptions = new CreateAclsOptions,
@@ -491,6 +731,14 @@ class KAdmin(val props: Properties) {
       }
     }
 
+    /**
+     * Remove ACLs in the Kafka cluster.
+     * This operation is not transactional so it may succeed for some ACLs while fail for others.
+     *
+     * @param filters         A list with the filters which can match AclBinding objects.
+     * @param options         Extra configuration options for deleting the ACLs.
+     * @param forceAuthorizer If force the use of an authorizer.
+     */
     def removeAcls(
                     filters: Seq[AclBindingFilter],
                     options: DeleteAclsOptions = new DeleteAclsOptions,
@@ -514,6 +762,14 @@ class KAdmin(val props: Properties) {
       }
     }
 
+    /**
+     * Get ACLs in the Kafka cluster.
+     *
+     * @param filter          An optional filter which can match AclBinding objects.
+     * @param options         Extra configuration options for describing the ACLs.
+     * @param forceAuthorizer If force the use of an authorizer.
+     * @return The result with the all ACLs.
+     */
     def getAcls(
                  filter: AclBindingFilter = AclBindingFilter.ANY,
                  options: DescribeAclsOptions = new DescribeAclsOptions,
@@ -526,6 +782,13 @@ class KAdmin(val props: Properties) {
       }.getOrElse(client.describeAcls(filter, options).values.get.asScala.toSeq)
     }
 
+    /**
+     * Print ACLs in the Kafka cluster.
+     *
+     * @param filter     An optional filter which can match AclBinding objects.
+     * @param principals Principals associated with each ACL. If empty, the list will not be grouped.
+     * @param options    Extra configuration options for describing the ACLs.
+     */
     def listAcls(
                   filter: AclBindingFilter = AclBindingFilter.ANY,
                   principals: Seq[KafkaPrincipal] = Seq.empty,
@@ -548,25 +811,47 @@ class KAdmin(val props: Properties) {
     }
   }
 
+  /**
+   * Class which includes functionalities related to see Kafka metrics.
+   */
   class KAdminMetrics {
 
     import org.apache.kafka.common.{Metric, MetricName}
     import org.apache.kafka.tools.{ToolsUtils => JToolsUtils}
 
-    def getMetrics: Map[MetricName, Metric] = {
-      getMetrics(".*", ".*")
-    }
+    /**
+     * Get all metrics registered.
+     *
+     * @return a { @code Map} with the all metrics registered.
+     */
+    def getMetrics: Map[MetricName, Metric] = getMetrics(".*", ".*")
 
+    /**
+     * Get all metrics registered filtered by the group and name regular expressions.
+     *
+     * @param groupRegex Regex to filter metrics by group name.
+     * @param nameRegex  Regex to filter metrics by its name.
+     * @return a { @code Map} with the all metrics registered filtered by the group and name regular expressions.
+     */
     def getMetrics(groupRegex: String, nameRegex: String): Map[MetricName, Metric] = {
       client.metrics.asScala
         .filter(metric => metric._1.group.matches(groupRegex) && metric._1.name.matches(nameRegex))
         .toMap
     }
 
+    /**
+     * Print all metrics.
+     */
     def listMetrics(): Unit = {
       listMetrics(".*", ".*")
     }
 
+    /**
+     * Print all metrics filtered by the group and name regular expressions.
+     *
+     * @param groupRegex Regex to filter metrics by group name.
+     * @param nameRegex  Regex to filter metrics by its name.
+     */
     def listMetrics(groupRegex: String, nameRegex: String): Unit = {
       JToolsUtils.printMetrics(getMetrics(groupRegex, nameRegex).asJava)
     }

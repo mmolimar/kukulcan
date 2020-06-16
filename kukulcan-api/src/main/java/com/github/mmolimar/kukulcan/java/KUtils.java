@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Utility class to convert class from Java to Scala and viceversa.
+ */
 public class KUtils {
 
     public static <K> scala.collection.Seq<K> toScalaSeq(List<K> list) {

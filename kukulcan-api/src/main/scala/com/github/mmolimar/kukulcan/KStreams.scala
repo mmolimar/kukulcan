@@ -13,6 +13,13 @@ object KStreams {
 
 }
 
+/**
+ * An enriched implementation of the {@code org.apache.kafka.streams.KafkaStreams} class to
+ * manages streams in Kafka.
+ *
+ * @param topology Topology specifying the computational logic.
+ * @param props Properties with the configuration.
+ */
 class KStreams(val topology: Topology, val props: Properties) extends KafkaStreams(topology, props) {
 
   import _root_.java.util.{Set => JSet}
@@ -28,6 +35,12 @@ class KStreams(val topology: Topology, val props: Properties) extends KafkaStrea
 
   import scala.collection.mutable
 
+  /**
+   * Create new instance with a new application id
+   *
+   * @param applicationId The new application id.
+   * @return The new instance created.
+   */
   def withApplicationId(applicationId: String): KStreams = {
     val newProps = new Properties()
     props.asScala.foreach(p => newProps.put(p._1, p._2))
@@ -35,26 +48,59 @@ class KStreams(val topology: Topology, val props: Properties) extends KafkaStrea
     new KStreams(topology = this.topology, props = newProps)
   }
 
+  /**
+   * Create new instance with the properties specified.
+   *
+   * @param props The properties to create the instance.
+   * @return The new instance created.
+   */
   def withProperties(props: Properties): KStreams = new KStreams(topology = this.topology, props = props)
 
+  /**
+   * Get all metrics registered.
+   *
+   * @return a { @code Map} with the all metrics registered.
+   */
   def getMetrics: Map[MetricName, Metric] = {
     getMetrics(".*", ".*")
   }
 
+  /**
+   * Get all metrics registered filtered by the group and name regular expressions.
+   *
+   * @param groupRegex Regex to filter metrics by group name.
+   * @param nameRegex  Regex to filter metrics by its name.
+   * @return a { @code Map} with the all metrics registered filtered by the group and name regular expressions.
+   */
   def getMetrics(groupRegex: String, nameRegex: String): Map[MetricName, Metric] = {
     metrics.asScala
       .filter(metric => metric._1.group.matches(groupRegex) && metric._1.name.matches(nameRegex))
       .toMap
   }
 
+  /**
+   * Print all metrics.
+   */
   def listMetrics(): Unit = {
     listMetrics(".*", ".*")
   }
 
+  /**
+   * Print all metrics filtered by the group and name regular expressions.
+   *
+   * @param groupRegex Regex to filter metrics by group name.
+   * @param nameRegex  Regex to filter metrics by its name.
+   */
   def listMetrics(groupRegex: String, nameRegex: String): Unit = {
     JToolsUtils.printMetrics(getMetrics(groupRegex, nameRegex).asJava)
   }
 
+  /**
+   * Print the topology in an ASCII graph.
+   *
+   * @param subtopologies If to include the subtopologies.
+   * @param globalStores  If to include the global stores.
+   */
   def printTopology(subtopologies: Boolean = true, globalStores: Boolean = true): Unit = {
     val description = topology.describe()
     val graphs = mutable.Set[KGraphTopology[KGraph[String]]]()
