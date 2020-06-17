@@ -25,7 +25,7 @@ public class KConnect {
     /**
      * Get the server version.
      *
-     * @return A { @code ServerVersion} instance.
+     * @return A {@code ServerVersion} instance.
      */
     public ServerVersion serverVersion() {
         return kconnect.serverVersion();
@@ -35,8 +35,8 @@ public class KConnect {
      * Add a new connector.
      *
      * @param name   Connector name.
-     * @param config { @code Map} with the connector configurations.
-     * @return A { @code Connector} with the connector definition.
+     * @param config {@code Map} with the connector configurations.
+     * @return A {@code Connector} with the connector definition.
      */
     public Connector addConnector(String name, Map<String, String> config) {
         return kconnect.addConnector(name, (scala.collection.immutable.Map<String, String>) toScalaMap(config));
@@ -46,7 +46,7 @@ public class KConnect {
      * Get a connector.
      *
      * @param name Connector name.
-     * @return A { @code Connector} with the connector definition.
+     * @return A {@code Connector} with the connector definition.
      */
     public Connector connector(String name) {
         return kconnect.connector(name);
@@ -56,16 +56,16 @@ public class KConnect {
      * Get the connector configurations.
      *
      * @param name Connector name.
-     * @return A { @code Map} with the connector configurations.
+     * @return A {@code Map} with the connector configurations.
      */
     public Map<String, String> connectorConfig(String name) {
         return toJavaMap(kconnect.connectorConfig(name));
     }
 
     /**
-     * Get the connector plugins availables.
+     * Get the available connector plugins.
      *
-     * @return A { @code ConnectorPlugin} list with all plugins.
+     * @return A {@code ConnectorPlugin} list with all plugins.
      */
     public List<ConnectorPlugin> connectorPlugins() {
         return toJavaList(kconnect.connectorPlugins());
@@ -75,7 +75,7 @@ public class KConnect {
      * Get the connector status.
      *
      * @param name Connector name.
-     * @return A { @code ConnectorStatus} with the connector status.
+     * @return A {@code ConnectorStatus} with the connector status.
      */
     public ConnectorStatus connectorStatus(String name) {
         return kconnect.connectorStatus(name);
@@ -85,7 +85,7 @@ public class KConnect {
      * Get the connector tasks.
      *
      * @param name Connector name.
-     * @return A { @code Task} list with its connector tasks.
+     * @return A {@code Task} list with its connector tasks.
      */
     public List<Task> connectorTasks(String name) {
         return toJavaList(kconnect.connectorTasks(name));
@@ -96,7 +96,7 @@ public class KConnect {
      *
      * @param name   Connector name.
      * @param taskId Task id to get the status.
-     * @return A { @code Task} with its status.
+     * @return A {@code Task} with its status.
      */
     public TaskStatus connectorTaskStatus(String name, int taskId) {
         return kconnect.connectorTaskStatus(name, taskId);
@@ -106,7 +106,7 @@ public class KConnect {
      * Get the set of topics that a specific connector is using.
      *
      * @param name Connector name.
-     * @return A { @code ConnectorTopics} with the topics used.
+     * @return A {@code ConnectorTopics} with the topics used.
      */
     public ConnectorTopics connectorTopics(String name) {
         return kconnect.connectorTopics(name);
@@ -117,7 +117,7 @@ public class KConnect {
      *
      * @param name   Connector name.
      * @param config Configuration values for the connector.
-     * @return A { @code ConnectorPluginValidation} with the results of the validation
+     * @return A {@code ConnectorPluginValidation} with the results of the validation
      */
     public ConnectorPluginValidation validateConnectorPluginConfig(String name, Map<String, String> config) {
         return kconnect.validateConnectorPluginConfig(name,
@@ -129,7 +129,7 @@ public class KConnect {
      *
      * @param name   Connector name.
      * @param config Configuration values to set.
-     * @return A { @code Connector} with the connector definition.
+     * @return A {@code Connector} with the connector definition.
      */
     public Connector updateConnector(String name, Map<String, String> config) {
         return kconnect.updateConnector(name,
@@ -209,7 +209,7 @@ public class KConnect {
     /**
      * Get all connectors deployed, including the definition for each connector.
      *
-     * @return A { @code ConnectorExpandedInfo} with the extended connector definition.
+     * @return A {@code ConnectorExpandedInfo} with the extended connector definition.
      */
     public ConnectorExpandedInfo connectorsWithExpandedInfo() {
         return kconnect.connectorsWithExpandedInfo();
@@ -218,7 +218,7 @@ public class KConnect {
     /**
      * Get all connectors deployed, including the status for each connector.
      *
-     * @return A { @code ConnectorExpandedStatus} with the extended status info.
+     * @return A {@code ConnectorExpandedStatus} with the extended status info.
      */
     public ConnectorExpandedStatus connectorsWithExpandedStatus() {
         return kconnect.connectorsWithExpandedStatus();
@@ -227,7 +227,7 @@ public class KConnect {
     /**
      * Get all connectors deployed, including all metadata available.
      *
-     * @return A { @code ConnectorExpandedMetadata} with all metadata available for each connector.
+     * @return A {@code ConnectorExpandedMetadata} with all metadata available for each connector.
      */
     public ConnectorExpandedMetadata connectorsWithAllExpandedMetadata() {
         return kconnect.connectorsWithAllExpandedMetadata();

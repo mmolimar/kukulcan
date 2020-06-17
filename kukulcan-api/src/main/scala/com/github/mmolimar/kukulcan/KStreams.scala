@@ -7,6 +7,10 @@ import org.apache.kafka.tools.{ToolsUtils => JToolsUtils}
 
 import scala.collection.JavaConverters._
 
+/**
+ * Factory for [[com.github.mmolimar.kukulcan.KStreams]] instances.
+ *
+ */
 object KStreams {
 
   def apply(topology: Topology, props: Properties): KStreams = new KStreams(topology, props)
@@ -18,7 +22,7 @@ object KStreams {
  * manages streams in Kafka.
  *
  * @param topology Topology specifying the computational logic.
- * @param props Properties with the configuration.
+ * @param props    Properties with the configuration.
  */
 class KStreams(val topology: Topology, val props: Properties) extends KafkaStreams(topology, props) {
 

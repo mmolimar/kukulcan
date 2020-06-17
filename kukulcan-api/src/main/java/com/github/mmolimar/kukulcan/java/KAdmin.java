@@ -61,7 +61,7 @@ public class KAdmin {
     }
 
     /**
-     * An instance of the KAdminTopics to manage topics.
+     * An instance of the {@code KAdminTopics} to manage topics.
      *
      * @return The {@code KAdminTopics} instance.
      */
@@ -70,25 +70,25 @@ public class KAdmin {
     }
 
     /**
-     * An instance of the KAdminConfigs to manage configurations.
+     * An instance of the {@code KAdminConfigs} to manage configurations.
      *
-     * @return The {@code KAdminTopics} instance.
+     * @return The {@code KAdminConfigs} instance.
      */
     public KAdminConfigs configs() {
         return configs;
     }
 
     /**
-     * An instance of the KAdminAcls to manage ACLs.
+     * An instance of the {@code KAdminAcls} to manage ACLs.
      *
-     * @return The {@code KAdminTopics} instance.
+     * @return The {@code KAdminAcls} instance.
      */
     public KAdminAcls acls() {
         return acls;
     }
 
     /**
-     * An instance of the KAdminMetrics to see the metrics.
+     * An instance of the {@code KAdminMetrics} to see the metrics.
      *
      * @return The {@code KAdminMetrics} instance.
      */
@@ -155,7 +155,7 @@ public class KAdmin {
          * This operation is not transactional so it may succeed for some topics while fail for others.
          *
          * @param name               Topic name.
-         * @param replicaAssignments A { @code Map} from partition id to replica ids.
+         * @param replicaAssignments A {@code Map} from partition id to replica ids.
          * @param configs            Extra configuration options for the topic.
          * @return If the topic was created or not.
          */
@@ -169,7 +169,7 @@ public class KAdmin {
          * This operation is not transactional so it may succeed for some topics while fail for others.
          *
          * @param name               Topic name.
-         * @param replicaAssignments A { @code Map} from partition id to replica ids.
+         * @param replicaAssignments A {@code Map} from partition id to replica ids.
          * @param configs            Extra configuration options for the topic.
          * @param options            Extra create topics options.
          * @return If the topic was created or not.
@@ -267,8 +267,8 @@ public class KAdmin {
          *
          * @param topic             Topic name.
          * @param partitions        Number of partitions.
-         * @param replicaAssignment A { @code Map} from partition id to replica ids.
-         * @return A { @code Map} with the topic and its new partitions.
+         * @param replicaAssignment A {@code Map} from partition id to replica ids.
+         * @return A {@code Map} with the topic and its new partitions.
          */
         public Map<String, NewPartitions> getNewPartitionsDistribution(String topic, int partitions,
                                                                        Map<Integer, List<Integer>> replicaAssignment) {
@@ -280,8 +280,8 @@ public class KAdmin {
          *
          * @param topics            Topic list.
          * @param partitions        Number of partitions.
-         * @param replicaAssignment A { @code Map} from partition id to replica ids.
-         * @return A { @code Map} with the topic and its new partitions.
+         * @param replicaAssignment A {@code Map} from partition id to replica ids.
+         * @return A {@code Map} with the topic and its new partitions.
          */
         @SuppressWarnings("unchecked")
         public Map<String, NewPartitions> getNewPartitionsDistribution(List<String> topics, int partitions,
@@ -304,7 +304,7 @@ public class KAdmin {
          *
          * @param topic             Topic name.
          * @param partitions        Number of partitions.
-         * @param replicaAssignment A { @code Map} from partition id to replica ids.
+         * @param replicaAssignment A {@code Map} from partition id to replica ids.
          */
         public void alterTopic(String topic, int partitions, Map<Integer, List<Integer>> replicaAssignment) {
             alterTopics(Collections.singletonList(topic), partitions, replicaAssignment);
@@ -315,8 +315,8 @@ public class KAdmin {
          *
          * @param topics            Topic list.
          * @param partitions        Number of partitions.
-         * @param replicaAssignment A { @code Map} from partition id to replica ids.
-         * @return A { @code Map} with the topic and its new partitions.
+         * @param replicaAssignment A {@code Map} from partition id to replica ids.
+         * @return A {@code Map} with the topic and its new partitions.
          */
         @SuppressWarnings("unchecked")
         public void alterTopics(List<String> topics, int partitions, Map<Integer, List<Integer>> replicaAssignment) {
@@ -349,8 +349,8 @@ public class KAdmin {
          * a particular resource are updated atomically.
          *
          * @param name               Topic name.
-         * @param configsToBeAdded   { @code Map} with the configs to add.
-         * @param configsToBeDeleted { @code Seq} with the configs to delete.
+         * @param configsToBeAdded   {@code Map} with the configs to add.
+         * @param configsToBeDeleted {@code Seq} with the configs to delete.
          */
         public void alterTopicConfig(String name, Map<String, String> configsToBeAdded,
                                      List<String> configsToBeDeleted) {
@@ -363,8 +363,8 @@ public class KAdmin {
          * a particular resource are updated atomically.
          *
          * @param brokerId           Broker to update.
-         * @param configsToBeAdded   { @code Map} with the configs to add.
-         * @param configsToBeDeleted { @code Seq} with the configs to delete.
+         * @param configsToBeAdded   {@code Map} with the configs to add.
+         * @param configsToBeDeleted {@code Seq} with the configs to delete.
          */
         public void alterBrokerConfig(int brokerId, Map<String, String> configsToBeAdded,
                                       List<String> configsToBeDeleted) {
@@ -377,8 +377,8 @@ public class KAdmin {
          * Updates are not transactional so they may succeed for some resources while fail for others. The configs for
          * a particular resource are updated atomically.
          *
-         * @param configsToBeAdded   { @code Map} with the configs to add.
-         * @param configsToBeDeleted { @code Seq} with the configs to delete.
+         * @param configsToBeAdded   {@code Map} with the configs to add.
+         * @param configsToBeDeleted {@code Seq} with the configs to delete.
          */
         public void alterBrokerConfig(Map<String, String> configsToBeAdded, List<String> configsToBeDeleted) {
             configs.alterBrokerConfig(toScalaOption(null), toScalaMap(configsToBeAdded), toScalaSeq(configsToBeDeleted));
@@ -390,8 +390,8 @@ public class KAdmin {
          * a particular resource are updated atomically.
          *
          * @param brokerId           Broker to update.
-         * @param configsToBeAdded   { @code Map} with the configs to add.
-         * @param configsToBeDeleted { @code Seq} with the configs to delete.
+         * @param configsToBeAdded   {@code Map} with the configs to add.
+         * @param configsToBeDeleted {@code Seq} with the configs to delete.
          */
         public void alterBrokerLoggerConfig(int brokerId, Map<String, String> configsToBeAdded,
                                             List<String> configsToBeDeleted) {
@@ -404,8 +404,8 @@ public class KAdmin {
          * Updates are not transactional so they may succeed for some resources while fail for others. The configs for
          * a particular resource are updated atomically.
          *
-         * @param configsToBeAdded   { @code Map} with the configs to add.
-         * @param configsToBeDeleted { @code Seq} with the configs to delete.
+         * @param configsToBeAdded   {@code Map} with the configs to add.
+         * @param configsToBeDeleted {@code Seq} with the configs to delete.
          */
         public void alterBrokerLoggerConfig(Map<String, String> configsToBeAdded, List<String> configsToBeDeleted) {
             configs.alterBrokerLoggerConfig(toScalaOption(null), toScalaMap(configsToBeAdded),
@@ -554,7 +554,7 @@ public class KAdmin {
         /**
          * Create a default Kafka Authorizer.
          *
-         * @return An { @code Optional} authorizer for the Kafka brokers.
+         * @return An {@code Optional} authorizer for the Kafka brokers.
          */
         public Optional<Authorizer> defaultAuthorizer() {
             return toJavaOptional(acls.defaultAuthorizer());
@@ -744,7 +744,7 @@ public class KAdmin {
         /**
          * Get all metrics registered.
          *
-         * @return a { @code Map} with the all metrics registered.
+         * @return a {@code Map} with the all metrics registered.
          */
         public Map<MetricName, Metric> getMetrics() {
             return getMetrics(".*");
@@ -754,7 +754,7 @@ public class KAdmin {
          * Get all metrics registered filtered by the group regular expressions.
          *
          * @param groupRegex Regex to filter metrics by group name.
-         * @return a { @code Map} with the all metrics registered filtered by the group regular expression.
+         * @return a {@code Map} with the all metrics registered filtered by the group regular expression.
          */
         public Map<MetricName, Metric> getMetrics(String groupRegex) {
             return getMetrics(groupRegex, ".*");
@@ -765,7 +765,7 @@ public class KAdmin {
          *
          * @param groupRegex Regex to filter metrics by group name.
          * @param nameRegex  Regex to filter metrics by its name.
-         * @return a { @code Map} with the all metrics registered filtered by the group and name regular expressions.
+         * @return a {@code Map} with the all metrics registered filtered by the group and name regular expressions.
          */
         public Map<MetricName, Metric> getMetrics(String groupRegex, String nameRegex) {
             return toJavaMap(metrics.getMetrics(groupRegex, nameRegex));

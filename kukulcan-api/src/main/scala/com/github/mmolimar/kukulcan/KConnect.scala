@@ -6,6 +6,10 @@ import _root_.java.util.Properties
 import org.sourcelab.kafka.connect.apiclient.request.dto.{ConnectServerVersion => JConnectServerVersion, ConnectorDefinition => JConnectorDefinition, ConnectorPlugin => JConnectorPlugin, ConnectorPluginConfigDefinition => JConnectorPluginConfigDefinition, ConnectorPluginConfigValidationResults => JConnectorPluginConfigValidationResults, ConnectorStatus => JConnectorStatus, ConnectorTopics => JConnectorTopics, ConnectorsWithExpandedInfo => JConnectorsWithExpandedInfo, ConnectorsWithExpandedMetadata => JConnectorsWithExpandedMetadata, ConnectorsWithExpandedStatus => JConnectorsWithExpandedStatus, NewConnectorDefinition => JNewConnectorDefinition, Task => JTask, TaskStatus => JTaskStatus}
 import org.sourcelab.kafka.connect.apiclient.{Configuration, KafkaConnectClient}
 
+/**
+ * Factory for [[com.github.mmolimar.kukulcan.KConnect]] instances.
+ *
+ */
 object KConnect {
 
   def apply(props: Properties): KConnect = new KConnect(props)
@@ -77,7 +81,7 @@ class KConnect(val props: Properties) {
   /**
    * Get the server version.
    *
-   * @return A { @code ServerVersion} instance.
+   * @return A {@code ServerVersion} instance.
    */
   def serverVersion: ServerVersion = client.getConnectServerVersion
 
@@ -85,8 +89,8 @@ class KConnect(val props: Properties) {
    * Add a new connector.
    *
    * @param name   Connector name.
-   * @param config { @code Map} with the connector configurations.
-   * @return A { @code Connector} with the connector definition.
+   * @param config {@code Map} with the connector configurations.
+   * @return A {@code Connector} with the connector definition.
    */
   def addConnector(name: String, config: Map[String, String]): Connector = {
     client.addConnector(new JNewConnectorDefinition(name, config.asJava))
@@ -96,7 +100,7 @@ class KConnect(val props: Properties) {
    * Get a connector.
    *
    * @param name Connector name.
-   * @return A { @code Connector} with the connector definition.
+   * @return A {@code Connector} with the connector definition.
    */
   def connector(name: String): Connector = client.getConnector(name)
 
@@ -104,14 +108,14 @@ class KConnect(val props: Properties) {
    * Get the connector configurations.
    *
    * @param name Connector name.
-   * @return A { @code Map} with the connector configurations.
+   * @return A {@code Map} with the connector configurations.
    */
   def connectorConfig(name: String): Map[String, String] = client.getConnectorConfig(name).asScala.toMap
 
   /**
-   * Get the connector plugins availables.
+   * Get the available connector plugins.
    *
-   * @return A { @code ConnectorPlugin} list with all plugins.
+   * @return A {@code ConnectorPlugin} list with all plugins.
    */
   def connectorPlugins: Seq[ConnectorPlugin] = client.getConnectorPlugins.asScala.map(toConnectorPlugin).toSeq
 
@@ -119,7 +123,7 @@ class KConnect(val props: Properties) {
    * Get the connector status.
    *
    * @param name Connector name.
-   * @return A { @code ConnectorStatus} with the connector status.
+   * @return A {@code ConnectorStatus} with the connector status.
    */
   def connectorStatus(name: String): ConnectorStatus = client.getConnectorStatus(name)
 
@@ -127,7 +131,7 @@ class KConnect(val props: Properties) {
    * Get the connector tasks.
    *
    * @param name Connector name.
-   * @return A { @code Task} list with its connector tasks.
+   * @return A {@code Task} list with its connector tasks.
    */
   def connectorTasks(name: String): Seq[Task] = client.getConnectorTasks(name).asScala.map(toTask).toSeq
 
@@ -136,7 +140,7 @@ class KConnect(val props: Properties) {
    *
    * @param name   Connector name.
    * @param taskId Task id to get the status.
-   * @return A { @code Task} with its status.
+   * @return A {@code Task} with its status.
    */
   def connectorTaskStatus(name: String, taskId: Int): TaskStatus = client.getConnectorTaskStatus(name, taskId)
 
@@ -144,7 +148,7 @@ class KConnect(val props: Properties) {
    * Get the set of topics that a specific connector is using.
    *
    * @param name Connector name.
-   * @return A { @code ConnectorTopics} with the topics used.
+   * @return A {@code ConnectorTopics} with the topics used.
    */
   def connectorTopics(name: String): ConnectorTopics = client.getConnectorTopics(name)
 
@@ -153,7 +157,7 @@ class KConnect(val props: Properties) {
    *
    * @param name   Connector name.
    * @param config Configuration values for the connector.
-   * @return A { @code ConnectorPluginValidation} with the results of the validation
+   * @return A {@code ConnectorPluginValidation} with the results of the validation
    */
   def validateConnectorPluginConfig(name: String, config: Map[String, String]): ConnectorPluginValidation = {
     client.validateConnectorPluginConfig(
@@ -166,7 +170,7 @@ class KConnect(val props: Properties) {
    *
    * @param name   Connector name.
    * @param config Configuration values to set.
-   * @return A { @code Connector} with the connector definition.
+   * @return A {@code Connector} with the connector definition.
    */
   def updateConnector(name: String, config: Map[String, String]): Connector = {
     client.updateConnectorConfig(name, config.asJava)
@@ -231,7 +235,7 @@ class KConnect(val props: Properties) {
   /**
    * Get all connectors deployed, including the definition for each connector.
    *
-   * @return A { @code ConnectorExpandedInfo} with the extended connector definition.
+   * @return A {@code ConnectorExpandedInfo} with the extended connector definition.
    */
   def connectorsWithExpandedInfo: ConnectorExpandedInfo = client.getConnectorsWithExpandedInfo
 

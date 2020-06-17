@@ -7,6 +7,10 @@ import org.apache.kafka.tools.{ToolsUtils => JToolsUtils}
 
 import scala.collection.JavaConverters._
 
+/**
+ * Factory for [[com.github.mmolimar.kukulcan.KConsumer]] instances.
+ *
+ */
 object KConsumer {
 
   def apply[K, V](props: Properties): KConsumer[K, V] = new KConsumer(props)
@@ -40,7 +44,7 @@ class KConsumer[K, V](val props: Properties) extends KafkaConsumer[K, V](props) 
   /**
    * Get all metrics registered.
    *
-   * @return a { @code Map} with the all metrics registered.
+   * @return a {@code Map} with the all metrics registered.
    */
   def getMetrics: Map[MetricName, Metric] = {
     getMetrics(".*", ".*")
@@ -51,7 +55,7 @@ class KConsumer[K, V](val props: Properties) extends KafkaConsumer[K, V](props) 
    *
    * @param groupRegex Regex to filter metrics by group name.
    * @param nameRegex  Regex to filter metrics by its name.
-   * @return a { @code Map} with the all metrics registered filtered by the group and name regular expressions.
+   * @return a {@code Map} with the all metrics registered filtered by the group and name regular expressions.
    */
   def getMetrics(groupRegex: String, nameRegex: String): Map[MetricName, Metric] = {
     metrics.asScala
