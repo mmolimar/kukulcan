@@ -43,28 +43,63 @@ public class Kukulcan {
         }
     };
 
+    /**
+     * Create a KAdmin instance reading the {@code admin.properties} file.
+     * If the instance was already created, it will be reused.
+     *
+     * @return The KAdmin instance initialized.
+     */
     public static KAdmin admin() {
         return kadminApi.inst();
     }
 
+    /**
+     * Create a KConsumer instance reading the {@code consumer.properties} file.
+     * If the instance was already created, it will be reused.
+     *
+     * @return The KConsumer instance initialized.
+     */
     @SuppressWarnings("unchecked")
     public static <K, V> KConsumer<K, V> consumer() {
         return (KConsumer<K, V>) kconsumerApi.inst();
     }
 
+    /**
+     * Create a KProducer instance reading the {@code producer.properties} file.
+     * If the instance was already created, it will be reused.
+     *
+     * @return The KProducer instance initialized.
+     */
     @SuppressWarnings("unchecked")
     public static <K, V> KProducer<K, V> producer() {
         return (KProducer<K, V>) kproducerApi.inst();
     }
 
+    /**
+     * Create a KConnect instance reading the {@code connect.properties} file.
+     * If the instance was already created, it will be reused.
+     *
+     * @return The KConnect instance initialized.
+     */
     public static KConnect connect() {
         return kconnectApi.inst();
     }
 
+    /**
+     * Create a KStreams instance reading the {@code streams.properties} file.
+     * If the instance was already created, it will be reused.
+     *
+     * @param topology The topology to create the KStream
+     * @return The KStreams instance initialized.
+     */
     public static KStreams streams(Topology topology) {
         return kStreamsApi.inst().apply(topology);
     }
 
+    /**
+     * Re-create all instances using their properties files.
+     *
+     */
     public static void reload() {
         kadminApi.reload();
         kconsumerApi.reload();

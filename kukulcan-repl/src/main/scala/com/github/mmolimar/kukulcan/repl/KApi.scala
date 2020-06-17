@@ -20,7 +20,7 @@ private[kukulcan] abstract class KApi[K <: AnyRef](name: String) {
   private var _instance: K = initialize()
 
   private def initialize(): K = {
-    val propsFile = File(s"$KUKULCAN_HOME/config/${name.trim.toLowerCase}.properties")
+    val propsFile = File(s"$KUKULCAN_HOME${File.separator}config${File.separator}${name.trim.toLowerCase}.properties")
     if (!propsFile.exists) {
       throw new KukulcanReplException(s"Cannot locate config file '${propsFile.jfile.getAbsolutePath}'. " +
         s"Do you have properly set '$KUKULCAN_ENV_VAR' environment variable?")

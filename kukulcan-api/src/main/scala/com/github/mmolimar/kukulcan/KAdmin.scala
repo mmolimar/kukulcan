@@ -582,7 +582,7 @@ class KAdmin(val props: Properties) {
      * @param describeAll If describe all configs.
      * @return A list with all config entries.
      */
-    def getDescribeTopicConfig(name: Option[String], describeAll: Boolean = true): Seq[ConfigEntry] = {
+    def getDescribeTopicConfig(name: Option[String] = None, describeAll: Boolean = true): Seq[ConfigEntry] = {
       getDescribeConfig(name.map(Seq(_)).getOrElse(topics.getTopics()), ConfigType.Topic, describeAll)
     }
 
@@ -593,7 +593,7 @@ class KAdmin(val props: Properties) {
      * @param describeAll If describe all configs.
      * @return A list with all config entries.
      */
-    def getDescribeBrokerConfig(brokerId: Option[Int], describeAll: Boolean = true): Seq[ConfigEntry] = {
+    def getDescribeBrokerConfig(brokerId: Option[Int] = None, describeAll: Boolean = true): Seq[ConfigEntry] = {
       val brokerList = brokerId.map(id => Seq(id.toString)).getOrElse {
         client.describeCluster.nodes.get.asScala
           .map(_.idString).toSeq
@@ -608,7 +608,7 @@ class KAdmin(val props: Properties) {
      * @param describeAll If describe all configs.
      * @return A list with all config entries.
      */
-    def getDescribeBrokerLoggerConfig(brokerId: Option[Int], describeAll: Boolean = true): Seq[ConfigEntry] = {
+    def getDescribeBrokerLoggerConfig(brokerId: Option[Int] = None, describeAll: Boolean = true): Seq[ConfigEntry] = {
       val brokerList = brokerId.map(id => Seq(id.toString)).getOrElse {
         client.describeCluster.nodes.get.asScala
           .map(_.idString).toSeq
@@ -637,7 +637,7 @@ class KAdmin(val props: Properties) {
      * @param describeAll If describe all configs.
      * @return A list with all config entries.
      */
-    def describeTopicConfig(name: Option[String], describeAll: Boolean = true): Unit = {
+    def describeTopicConfig(name: Option[String] = None, describeAll: Boolean = true): Unit = {
       val configs = getDescribeTopicConfig(name, describeAll)
       printDescribeConfig(name, ConfigType.Topic, configs, describeAll)
     }
@@ -649,7 +649,7 @@ class KAdmin(val props: Properties) {
      * @param describeAll If describe all configs.
      * @return A list with all config entries.
      */
-    def describeBrokerConfig(brokerId: Option[Int], describeAll: Boolean = true): Unit = {
+    def describeBrokerConfig(brokerId: Option[Int] = None, describeAll: Boolean = true): Unit = {
       val configs = getDescribeBrokerConfig(brokerId, describeAll)
       printDescribeConfig(brokerId, ConfigType.Broker, configs, describeAll)
     }
@@ -661,7 +661,7 @@ class KAdmin(val props: Properties) {
      * @param describeAll If describe all configs.
      * @return A list with all config entries.
      */
-    def describeBrokerLoggerConfig(brokerId: Option[Int], describeAll: Boolean = true): Unit = {
+    def describeBrokerLoggerConfig(brokerId: Option[Int] = None, describeAll: Boolean = true): Unit = {
       val configs = getDescribeBrokerLoggerConfig(brokerId, describeAll)
       printDescribeConfig(brokerId, BrokerLoggerConfigType, configs, describeAll)
     }

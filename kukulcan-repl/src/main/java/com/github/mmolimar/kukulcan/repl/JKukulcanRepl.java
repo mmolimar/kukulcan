@@ -6,6 +6,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+/**
+ * Entry point for the Kukulcan REPL with the JShell.
+ *
+ */
 public class JKukulcanRepl {
 
     public static void main(String[] args) throws Exception {

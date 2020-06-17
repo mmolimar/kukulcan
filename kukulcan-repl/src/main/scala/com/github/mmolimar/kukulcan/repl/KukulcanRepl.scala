@@ -3,6 +3,10 @@ package com.github.mmolimar.kukulcan.repl
 import scala.tools.nsc.GenericRunnerSettings
 import scala.tools.nsc.interpreter.ILoop
 
+/**
+ * Entry point for the Kukulcan Scala REPL.
+ *
+ */
 object KukulcanRepl extends App {
 
   def printBanner(): Unit = println(banner)

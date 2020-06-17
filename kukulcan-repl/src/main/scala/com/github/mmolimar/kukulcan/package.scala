@@ -7,16 +7,51 @@ import org.apache.kafka.streams.Topology
 
 package object kukulcan {
 
+  /**
+   * Create a KAdmin instance reading the {@code admin.properties} file.
+   * If the instance was already created, it will be reused.
+   *
+   * @return The KAdmin instance initialized.
+   */
   def admin: KAdmin = KAdminApi.inst
 
+  /**
+   * Create a KConsumer instance reading the {@code consumer.properties} file.
+   * If the instance was already created, it will be reused.
+   *
+   * @return The KConsumer instance initialized.
+   */
   def consumer[K, V]: KConsumer[K, V] = KConsumerApi.inst.asInstanceOf[KConsumer[K, V]]
 
+  /**
+   * Create a KProducer instance reading the {@code producer.properties} file.
+   * If the instance was already created, it will be reused.
+   *
+   * @return The KProducer instance initialized.
+   */
   def producer[K, V]: KProducer[K, V] = KProducerApi.inst.asInstanceOf[KProducer[K, V]]
 
+  /**
+   * Create a KConnect instance reading the {@code connect.properties} file.
+   * If the instance was already created, it will be reused.
+   *
+   * @return The KConnect instance initialized.
+   */
   def connect: KConnect = KConnectApi.inst
 
+  /**
+   * Create a KStreams instance reading the {@code streams.properties} file.
+   * If the instance was already created, it will be reused.
+   *
+   * @param topology The topology to create the KStream
+   * @return The KStreams instance initialized.
+   */
   def streams(topology: Topology): KStreams = KStreamsApi.inst(topology)
 
+  /**
+   * Re-create all instances using their properties files.
+   *
+   */
   def reload(): Unit = {
     KAdminApi.reload()
     KConsumerApi.reload()
