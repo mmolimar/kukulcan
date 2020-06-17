@@ -1,4 +1,4 @@
-val projectVersion = "0.1.0-SNAPSHOT"
+val projectVersion = "0.1.0"
 
 val repos = Seq(
   "Confluent Maven Repo" at "https://packages.confluent.io/maven/",
