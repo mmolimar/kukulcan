@@ -90,6 +90,10 @@ you can do with Kukulcan:
 
   ![](/docs/img/kconnect.png)
 
+> **NOTE**: The REPLs have already the Kukulcan imports: ``com.github.mmolimar.kukulcan`` in case of the
+Scala and Ammonite REPLs and ``com.github.mmolimar.kukulcan.Kukulcan`` in case of the JShell REPL. So you just
+have to start typing ``kukulcan.<option>.`` or ``Kukulcan.<option>.`` respectively.
+
 
 ### Kukulcan Ammonite REPL
 
