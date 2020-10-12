@@ -1,6 +1,6 @@
 #!/usr/bin/env amm
 
-val kukulcanVersion = "0.1.0"
+val kukulcanVersion = "0.2.0-SNAPSHOT"
 val predefCode =
   s"""
      |import coursierapi.MavenRepository
