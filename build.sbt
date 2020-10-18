@@ -9,9 +9,9 @@ lazy val settings = new {
   val projectScalaVersion = "2.12.11"
 
   val dependencies = new {
-    val kafkaVersion = "2.5.0"
+    val kafkaVersion = "2.6.0"
     val kafkaConnectClientVersion = "3.1.0"
-    val circeVersion = "0.12.3"
+    val circeVersion = "0.13.0"
     val asciiGraphsVersion = "0.0.6"
 
     val api = Seq(
