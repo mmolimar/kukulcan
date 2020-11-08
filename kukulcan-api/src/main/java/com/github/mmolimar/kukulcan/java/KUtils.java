@@ -12,7 +12,7 @@ import java.util.Optional;
 public class KUtils {
 
     public static <K> scala.collection.Seq<K> toScalaSeq(List<K> list) {
-        return JavaConverters.asScalaIteratorConverter(list.iterator()).asScala().toSeq();
+        return JavaConverters.asScalaBuffer(list).toSeq();
     }
 
     public static <K, V> scala.collection.Map<K, V> toScalaMap(Map<K, V> map) {

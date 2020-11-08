@@ -47,7 +47,9 @@ class KStreams(val topology: Topology, val props: Properties) extends KafkaStrea
    */
   def withApplicationId(applicationId: String): KStreams = {
     val newProps = new Properties()
-    props.asScala.foreach(p => newProps.put(p._1, p._2))
+    props.asScala.foreach {
+      case (k, v) => newProps.put(k, v)
+    }
     newProps.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId)
     new KStreams(topology = this.topology, props = newProps)
   }
@@ -131,7 +133,7 @@ class KStreams(val topology: Topology, val props: Properties) extends KafkaStrea
           val topics = Option(source.topicSet).map(_.asScala.map(topic => topic -> source.name).toList).getOrElse(List.empty)
           val pattern = Option(source.topicPattern).map(tp => tp.pattern -> source.name).toList
           topics ++ pattern
-        case sink: Sink =>
+        case sink: Sink[_, _] =>
           Option(sink.topic).map(t => sink.name -> t).toList ++
             Option(sink.topicNameExtractor)
               .map(t => sink.name -> s"EXTRACTOR[${t.hashCode}]").toList
@@ -152,7 +154,7 @@ class KStreams(val topology: Topology, val props: Properties) extends KafkaStrea
         new KGraphNodeSource(source = tp.pattern, target = source.name, TOPIC_PATTERN)
       ).toList
       (topics ++ pattern).toList
-    case sink: Sink =>
+    case sink: Sink[_, _] =>
       Option(sink.topic).map(t => new KGraphNodeSink(source = sink.name, target = t, TOPIC)).toList ++
         Option(sink.topicNameExtractor)
           .map(t => new KGraphNodeSink(source = sink.name, target = s"EXTRACTOR[${t.hashCode}]", TOPIC_EXTRACTOR)).toList
@@ -163,7 +165,10 @@ class KStreams(val topology: Topology, val props: Properties) extends KafkaStrea
     case _ => List.empty
   }
 
-  private def edgesFromGraph(graph: List[KGraph[String]], subtopologies: List[KGraphSubtopology[String]]): List[(KGraph[String], KGraph[String])] = {
+  private def edgesFromGraph(
+                              graph: List[KGraph[String]],
+                              subtopologies: List[KGraphSubtopology[String]]
+                            ): List[(KGraph[String], KGraph[String])] = {
     graph.flatMap {
       case node: KGraphNodeSource =>
         subtopologies.filter(g => g.vertices.contains(node.target)).map(target => (node, target))
