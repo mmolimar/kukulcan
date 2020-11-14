@@ -25,6 +25,7 @@ build
 libs
 venv
 null
+out
 tmp
 temp
 test-output
