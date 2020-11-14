@@ -2,29 +2,34 @@ val projectVersion = "0.2.0-SNAPSHOT"
 
 val repos = Seq(
   "Confluent Maven Repo" at "https://packages.confluent.io/maven/",
+  "jitpack" at "https://jitpack.io",
   Resolver.mavenLocal
 )
 
 lazy val settings = new {
-  val projectScalaVersion = "2.12.11"
+  val projectScalaVersion = "2.12.12"
 
   val dependencies = new {
+    val asciiGraphsVersion = "0.0.6"
+    val circeVersion = "0.13.0"
+    val confluentVersion = "6.0.0"
     val kafkaVersion = "2.6.0"
     val kafkaConnectClientVersion = "3.1.0"
-    val circeVersion = "0.13.0"
-    val asciiGraphsVersion = "0.0.6"
 
     val api = Seq(
+      "org.scala-lang" % "scala-compiler" % projectScalaVersion,
       "org.apache.kafka" %% "kafka" % kafkaVersion,
       "org.apache.kafka" % "kafka-clients" % kafkaVersion,
       "org.apache.kafka" % "kafka-tools" % kafkaVersion,
       "org.apache.kafka" %% "kafka-streams-scala" % kafkaVersion,
       "org.apache.kafka" % "kafka-streams-test-utils" % kafkaVersion,
-      "org.scala-lang" % "scala-compiler" % projectScalaVersion,
       "org.sourcelab" % "kafka-connect-client" % kafkaConnectClientVersion,
       "io.circe" %% "circe-core" % circeVersion,
       "io.circe" %% "circe-generic" % circeVersion,
       "io.circe" %% "circe-parser" % circeVersion,
+      "io.confluent" % "kafka-schema-registry-client" % confluentVersion,
+      "io.confluent" % "kafka-json-schema-provider" % confluentVersion,
+      "io.confluent" % "kafka-protobuf-provider" % confluentVersion,
       "com.github.mutcianm" %% "ascii-graphs" % asciiGraphsVersion
     )
     val repl = Seq.empty
