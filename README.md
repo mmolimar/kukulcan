@@ -57,9 +57,10 @@ Contains all the Scala and Java classes to interact with Kafka and extending the
 functionalities. This API contains:
 
 * **KAdmin**: grouped utils for administrative operations for topics, configs, ACLs and metrics.
-* **KConnect**: methods to execute request agains Kafka Connect.
+* **KConnect**: methods to execute requests against Kafka Connect.
 * **KConsumer** and **KProducer**: Kafka consumer/producer with some extra features.
 * **KStreams**: extends Kafka Streams to see how your topology is (printing it in a graph).
+* **KSchemaRegistry**: to interact with Confluent Schema Registry.
 
 ### kukulcan-repl
 
@@ -154,7 +155,6 @@ For Windows OS:
 ## TODO's
 
 - [ ] Tools in the Admin API.
-- [ ] Integration with Schema Registry.
 - [ ] Integration with REST Proxy.
 - [ ] Integration with ksqlDB.
 - [ ] API for Python.
