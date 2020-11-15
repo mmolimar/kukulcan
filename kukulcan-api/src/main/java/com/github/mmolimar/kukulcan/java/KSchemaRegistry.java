@@ -300,7 +300,7 @@ public class KSchemaRegistry {
      * @param requestProperties Properties to set for the request.
      * @return the ID of the deleted version.
      */
-    public int deleteSchemaVersion(Map<String, String> requestProperties, String subject, String version) {
+    public int deleteSchemaVersion(String subject, String version, Map<String, String> requestProperties) {
         return kschemaRegistry.deleteSchemaVersion(subject, version, toScalaMap(requestProperties));
     }
 

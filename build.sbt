@@ -7,7 +7,7 @@ val repos = Seq(
 )
 
 lazy val settings = new {
-  val projectScalaVersion = "2.12.12"
+  val projectScalaVersion = "2.12.11"
 
   val dependencies = new {
     val asciiGraphsVersion = "0.0.6"
@@ -15,6 +15,8 @@ lazy val settings = new {
     val confluentVersion = "6.0.0"
     val kafkaVersion = "2.6.0"
     val kafkaConnectClientVersion = "3.1.0"
+
+    val scalaTestVersion = "3.2.3"
 
     val api = Seq(
       "org.scala-lang" % "scala-compiler" % projectScalaVersion,
@@ -30,7 +32,11 @@ lazy val settings = new {
       "io.confluent" % "kafka-schema-registry-client" % confluentVersion,
       "io.confluent" % "kafka-json-schema-provider" % confluentVersion,
       "io.confluent" % "kafka-protobuf-provider" % confluentVersion,
-      "com.github.mutcianm" %% "ascii-graphs" % asciiGraphsVersion
+      "com.github.mutcianm" %% "ascii-graphs" % asciiGraphsVersion,
+
+      "org.scalatest" %% "scalatest-wordspec" % scalaTestVersion % Test,
+      "org.scalatest" %% "scalatest-shouldmatchers" % scalaTestVersion % Test,
+      "io.github.embeddedkafka" %% "embedded-kafka-schema-registry" % confluentVersion % Test
     )
     val repl = Seq.empty
     val root = Seq.empty
