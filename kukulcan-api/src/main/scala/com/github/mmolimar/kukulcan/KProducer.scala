@@ -30,7 +30,7 @@ class KProducer[K, V](val props: Properties) extends KafkaProducer[K, V](props) 
   /**
    * Get all metrics registered.
    *
-   * @return a {@code Map} with the all metrics registered.
+   * @return a {@code Map[MetricName, Metric]} with the all metrics registered.
    */
   def getMetrics: Map[MetricName, Metric] = {
     getMetrics(".*", ".*")
@@ -41,7 +41,8 @@ class KProducer[K, V](val props: Properties) extends KafkaProducer[K, V](props) 
    *
    * @param groupRegex Regex to filter metrics by group name.
    * @param nameRegex  Regex to filter metrics by its name.
-   * @return a {@code Map} with the all metrics registered filtered by the group and name regular expressions.
+   * @return a {@code Map[MetricName, Metric]} with the all metrics registered filtered by the group and name regular
+   *      expressions.
    */
   def getMetrics(groupRegex: String, nameRegex: String): Map[MetricName, Metric] = {
     metrics.asScala

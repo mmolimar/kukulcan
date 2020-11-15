@@ -147,7 +147,7 @@ public class KAdmin {
          * @return If the topics were created or not.
          */
         public boolean createTopics(List<NewTopic> newTopics, CreateTopicsOptions options) {
-            return topics.createTopics(toScalaSeq(newTopics), toScalaOption(options));
+            return topics.createTopics(toScalaSeq(newTopics), scalaOption(options));
         }
 
         /**
@@ -155,8 +155,8 @@ public class KAdmin {
          * This operation is not transactional so it may succeed for some topics while fail for others.
          *
          * @param name               Topic name.
-         * @param replicaAssignments A {@code Map} from partition id to replica ids.
-         * @param configs            Extra configuration options for the topic.
+         * @param replicaAssignments A {@code Map[Integer, List[Integer]]} from partition id to replica ids.
+         * @param configs            A {@code Map[String, String]} with extra configuration options for the topic.
          * @return If the topic was created or not.
          */
         public boolean createTopicWithReplicasAssignments(String name, Map<Integer, List<Integer>> replicaAssignments,
@@ -169,8 +169,8 @@ public class KAdmin {
          * This operation is not transactional so it may succeed for some topics while fail for others.
          *
          * @param name               Topic name.
-         * @param replicaAssignments A {@code Map} from partition id to replica ids.
-         * @param configs            Extra configuration options for the topic.
+         * @param replicaAssignments A {@code Map[Integer, List[Integer]]} from partition id to replica ids.
+         * @param configs            A {@code Map[String, String]} with extra configuration options for the topic.
          * @param options            Extra create topics options.
          * @return If the topic was created or not.
          */
@@ -187,7 +187,7 @@ public class KAdmin {
          * @return A list with topic names.
          */
         public List<String> getTopics(boolean excludeInternalTopics) {
-            return toJavaList(topics.getTopics(toScalaOption(null), excludeInternalTopics));
+            return toJavaList(topics.getTopics(scalaOption(null), excludeInternalTopics));
         }
 
         /**
@@ -198,7 +198,7 @@ public class KAdmin {
          * @return A list with topic names.
          */
         public List<String> getTopics(String topicWhitelist, boolean excludeInternalTopics) {
-            return toJavaList(topics.getTopics(toScalaOption(topicWhitelist), excludeInternalTopics));
+            return toJavaList(topics.getTopics(scalaOption(topicWhitelist), excludeInternalTopics));
         }
 
         /**
@@ -207,7 +207,7 @@ public class KAdmin {
          * @param excludeInternalTopics If exclude internal topics in the returned list.
          */
         public void listTopics(boolean excludeInternalTopics) {
-            topics.listTopics(toScalaOption(null), excludeInternalTopics);
+            topics.listTopics(scalaOption(null), excludeInternalTopics);
         }
 
         /**
@@ -217,7 +217,7 @@ public class KAdmin {
          * @param excludeInternalTopics If exclude internal topics in the returned list.
          */
         public void listTopics(String topicWhitelist, boolean excludeInternalTopics) {
-            topics.listTopics(toScalaOption(topicWhitelist), excludeInternalTopics);
+            topics.listTopics(scalaOption(topicWhitelist), excludeInternalTopics);
         }
 
         /**
@@ -241,7 +241,7 @@ public class KAdmin {
          */
         public void describeTopics(List<String> topics, DescribeTopicsOptions options,
                                    boolean withConfigs, boolean withPartitions) {
-            this.topics.describeTopics(toScalaSeq(topics), toScalaOption(options), withConfigs, withPartitions);
+            this.topics.describeTopics(toScalaSeq(topics), scalaOption(options), withConfigs, withPartitions);
         }
 
         /**
@@ -267,8 +267,8 @@ public class KAdmin {
          *
          * @param topic             Topic name.
          * @param partitions        Number of partitions.
-         * @param replicaAssignment A {@code Map} from partition id to replica ids.
-         * @return A {@code Map} with the topic and its new partitions.
+         * @param replicaAssignment A {@code Map[Integer, List[Integer]]} from partition id to replica ids.
+         * @return A {@code Map[String, NewPartitions]} with the topic and its new partitions.
          */
         public Map<String, NewPartitions> getNewPartitionsDistribution(String topic, int partitions,
                                                                        Map<Integer, List<Integer>> replicaAssignment) {
@@ -280,8 +280,8 @@ public class KAdmin {
          *
          * @param topics            Topic list.
          * @param partitions        Number of partitions.
-         * @param replicaAssignment A {@code Map} from partition id to replica ids.
-         * @return A {@code Map} with the topic and its new partitions.
+         * @param replicaAssignment A {@code Map[Integer, List[Integer]]} from partition id to replica ids.
+         * @return A {@code Map[String, NewPartitions]} with the topic and its new partitions.
          */
         @SuppressWarnings("unchecked")
         public Map<String, NewPartitions> getNewPartitionsDistribution(List<String> topics, int partitions,
@@ -304,7 +304,7 @@ public class KAdmin {
          *
          * @param topic             Topic name.
          * @param partitions        Number of partitions.
-         * @param replicaAssignment A {@code Map} from partition id to replica ids.
+         * @param replicaAssignment A {@code Map[Integer, List[Integer]]} from partition id to replica ids.
          */
         public void alterTopic(String topic, int partitions, Map<Integer, List<Integer>> replicaAssignment) {
             alterTopics(Collections.singletonList(topic), partitions, replicaAssignment);
@@ -315,8 +315,7 @@ public class KAdmin {
          *
          * @param topics            Topic list.
          * @param partitions        Number of partitions.
-         * @param replicaAssignment A {@code Map} from partition id to replica ids.
-         * @return A {@code Map} with the topic and its new partitions.
+         * @param replicaAssignment A {@code Map[Integer, List[Integer]]} from partition id to replica ids.
          */
         @SuppressWarnings("unchecked")
         public void alterTopics(List<String> topics, int partitions, Map<Integer, List<Integer>> replicaAssignment) {
@@ -349,8 +348,8 @@ public class KAdmin {
          * a particular resource are updated atomically.
          *
          * @param name               Topic name.
-         * @param configsToBeAdded   {@code Map} with the configs to add.
-         * @param configsToBeDeleted {@code Seq} with the configs to delete.
+         * @param configsToBeAdded   {@code Map[String, String]} with the configs to add.
+         * @param configsToBeDeleted {@code List[String]} with the configs to delete.
          */
         public void alterTopicConfig(String name, Map<String, String> configsToBeAdded,
                                      List<String> configsToBeDeleted) {
@@ -363,12 +362,12 @@ public class KAdmin {
          * a particular resource are updated atomically.
          *
          * @param brokerId           Broker to update.
-         * @param configsToBeAdded   {@code Map} with the configs to add.
-         * @param configsToBeDeleted {@code Seq} with the configs to delete.
+         * @param configsToBeAdded   {@code Map[String, String]} with the configs to add.
+         * @param configsToBeDeleted {@code List[String]} with the configs to delete.
          */
         public void alterBrokerConfig(int brokerId, Map<String, String> configsToBeAdded,
                                       List<String> configsToBeDeleted) {
-            configs.alterBrokerConfig(toScalaOption(brokerId), toScalaMap(configsToBeAdded),
+            configs.alterBrokerConfig(scalaOption(brokerId), toScalaMap(configsToBeAdded),
                     toScalaSeq(configsToBeDeleted));
         }
 
@@ -377,11 +376,11 @@ public class KAdmin {
          * Updates are not transactional so they may succeed for some resources while fail for others. The configs for
          * a particular resource are updated atomically.
          *
-         * @param configsToBeAdded   {@code Map} with the configs to add.
-         * @param configsToBeDeleted {@code Seq} with the configs to delete.
+         * @param configsToBeAdded   {@code Map[String, String]} with the configs to add.
+         * @param configsToBeDeleted {@code List[String]} with the configs to delete.
          */
         public void alterBrokerConfig(Map<String, String> configsToBeAdded, List<String> configsToBeDeleted) {
-            configs.alterBrokerConfig(toScalaOption(null), toScalaMap(configsToBeAdded), toScalaSeq(configsToBeDeleted));
+            configs.alterBrokerConfig(scalaOption(null), toScalaMap(configsToBeAdded), toScalaSeq(configsToBeDeleted));
         }
 
         /**
@@ -390,12 +389,12 @@ public class KAdmin {
          * a particular resource are updated atomically.
          *
          * @param brokerId           Broker to update.
-         * @param configsToBeAdded   {@code Map} with the configs to add.
-         * @param configsToBeDeleted {@code Seq} with the configs to delete.
+         * @param configsToBeAdded   {@code Map[String, String]} with the configs to add.
+         * @param configsToBeDeleted {@code List[String]} with the configs to delete.
          */
         public void alterBrokerLoggerConfig(int brokerId, Map<String, String> configsToBeAdded,
                                             List<String> configsToBeDeleted) {
-            configs.alterBrokerLoggerConfig(toScalaOption(brokerId), toScalaMap(configsToBeAdded),
+            configs.alterBrokerLoggerConfig(scalaOption(brokerId), toScalaMap(configsToBeAdded),
                     toScalaSeq(configsToBeDeleted));
         }
 
@@ -404,11 +403,11 @@ public class KAdmin {
          * Updates are not transactional so they may succeed for some resources while fail for others. The configs for
          * a particular resource are updated atomically.
          *
-         * @param configsToBeAdded   {@code Map} with the configs to add.
-         * @param configsToBeDeleted {@code Seq} with the configs to delete.
+         * @param configsToBeAdded   {@code Map[String, String]} with the configs to add.
+         * @param configsToBeDeleted {@code List[String]} with the configs to delete.
          */
         public void alterBrokerLoggerConfig(Map<String, String> configsToBeAdded, List<String> configsToBeDeleted) {
-            configs.alterBrokerLoggerConfig(toScalaOption(null), toScalaMap(configsToBeAdded),
+            configs.alterBrokerLoggerConfig(scalaOption(null), toScalaMap(configsToBeAdded),
                     toScalaSeq(configsToBeDeleted));
         }
 
@@ -420,7 +419,7 @@ public class KAdmin {
          * @return A list with all config entries.
          */
         public List<ConfigEntry> getDescribeTopicConfig(String name, boolean describeAll) {
-            return toJavaList(configs.getDescribeTopicConfig(toScalaOption(name), describeAll));
+            return toJavaList(configs.getDescribeTopicConfig(scalaOption(name), describeAll));
         }
 
         /**
@@ -430,7 +429,7 @@ public class KAdmin {
          * @return A list with all config entries.
          */
         public List<ConfigEntry> getDescribeTopicConfig(boolean describeAll) {
-            return toJavaList(configs.getDescribeTopicConfig(toScalaOption(null), describeAll));
+            return toJavaList(configs.getDescribeTopicConfig(scalaOption(null), describeAll));
         }
 
         /**
@@ -441,7 +440,7 @@ public class KAdmin {
          * @return A list with all config entries.
          */
         public List<ConfigEntry> getDescribeBrokerConfig(int brokerId, boolean describeAll) {
-            return toJavaList(configs.getDescribeBrokerConfig(toScalaOption(brokerId), describeAll));
+            return toJavaList(configs.getDescribeBrokerConfig(scalaOption(brokerId), describeAll));
         }
 
         /**
@@ -451,7 +450,7 @@ public class KAdmin {
          * @return A list with all config entries.
          */
         public List<ConfigEntry> getDescribeBrokerConfig(boolean describeAll) {
-            return toJavaList(configs.getDescribeBrokerConfig(toScalaOption(null), describeAll));
+            return toJavaList(configs.getDescribeBrokerConfig(scalaOption(null), describeAll));
         }
 
         /**
@@ -462,7 +461,7 @@ public class KAdmin {
          * @return A list with all config entries.
          */
         public List<ConfigEntry> getDescribeBrokerLoggerConfig(int brokerId, boolean describeAll) {
-            return toJavaList(configs.getDescribeBrokerLoggerConfig(toScalaOption(brokerId), describeAll));
+            return toJavaList(configs.getDescribeBrokerLoggerConfig(scalaOption(brokerId), describeAll));
         }
 
         /**
@@ -472,7 +471,7 @@ public class KAdmin {
          * @return A list with all config entries.
          */
         public List<ConfigEntry> getDescribeBrokerLoggerConfig(boolean describeAll) {
-            return toJavaList(configs.getDescribeBrokerLoggerConfig(toScalaOption(null), describeAll));
+            return toJavaList(configs.getDescribeBrokerLoggerConfig(scalaOption(null), describeAll));
         }
 
         /**
@@ -483,7 +482,7 @@ public class KAdmin {
          * @return A list with all config entries.
          */
         public void describeTopicConfig(String name, boolean describeAll) {
-            configs.describeTopicConfig(toScalaOption(name), describeAll);
+            configs.describeTopicConfig(scalaOption(name), describeAll);
         }
 
         /**
@@ -493,7 +492,7 @@ public class KAdmin {
          * @return A list with all config entries.
          */
         public void describeTopicConfig(boolean describeAll) {
-            configs.describeTopicConfig(toScalaOption(null), describeAll);
+            configs.describeTopicConfig(scalaOption(null), describeAll);
         }
 
         /**
@@ -504,7 +503,7 @@ public class KAdmin {
          * @return A list with all config entries.
          */
         public void describeBrokerConfig(int brokerId, boolean describeAll) {
-            configs.describeBrokerConfig(toScalaOption(brokerId), describeAll);
+            configs.describeBrokerConfig(scalaOption(brokerId), describeAll);
         }
 
         /**
@@ -514,7 +513,7 @@ public class KAdmin {
          * @return A list with all config entries.
          */
         public void describeBrokerConfig(boolean describeAll) {
-            configs.describeBrokerConfig(toScalaOption(null), describeAll);
+            configs.describeBrokerConfig(scalaOption(null), describeAll);
         }
 
         /**
@@ -525,7 +524,7 @@ public class KAdmin {
          * @return A list with all config entries.
          */
         public void describeBrokerLoggerConfig(int brokerId, boolean describeAll) {
-            configs.describeBrokerConfig(toScalaOption(brokerId), describeAll);
+            configs.describeBrokerConfig(scalaOption(brokerId), describeAll);
         }
 
         /**
@@ -535,7 +534,7 @@ public class KAdmin {
          * @return A list with all config entries.
          */
         public void describeBrokerLoggerConfig(boolean describeAll) {
-            configs.describeBrokerConfig(toScalaOption(null), describeAll);
+            configs.describeBrokerConfig(scalaOption(null), describeAll);
         }
 
     }
@@ -554,10 +553,10 @@ public class KAdmin {
         /**
          * Create a default Kafka Authorizer.
          *
-         * @return An {@code Optional} authorizer for the Kafka brokers.
+         * @return An {@code Optional[Authorizer]} authorizer for the Kafka brokers.
          */
         public Optional<Authorizer> defaultAuthorizer() {
-            return toJavaOptional(acls.defaultAuthorizer());
+            return toJavaOption(acls.defaultAuthorizer());
         }
 
         /**
@@ -744,7 +743,7 @@ public class KAdmin {
         /**
          * Get all metrics registered.
          *
-         * @return a {@code Map} with the all metrics registered.
+         * @return a {@code Map[MetricName, Metric]} with the all metrics registered.
          */
         public Map<MetricName, Metric> getMetrics() {
             return getMetrics(".*");
@@ -754,7 +753,8 @@ public class KAdmin {
          * Get all metrics registered filtered by the group regular expressions.
          *
          * @param groupRegex Regex to filter metrics by group name.
-         * @return a {@code Map} with the all metrics registered filtered by the group regular expression.
+         * @return a {@code Map[MetricName, Metric]} with the all metrics registered filtered by the group regular
+         * expression.
          */
         public Map<MetricName, Metric> getMetrics(String groupRegex) {
             return getMetrics(groupRegex, ".*");
@@ -765,7 +765,8 @@ public class KAdmin {
          *
          * @param groupRegex Regex to filter metrics by group name.
          * @param nameRegex  Regex to filter metrics by its name.
-         * @return a {@code Map} with the all metrics registered filtered by the group and name regular expressions.
+         * @return a {@code Map[MetricName, Metric]} with the all metrics registered filtered by the group and name
+         * regular expressions.
          */
         public Map<MetricName, Metric> getMetrics(String groupRegex, String nameRegex) {
             return toJavaMap(metrics.getMetrics(groupRegex, nameRegex));

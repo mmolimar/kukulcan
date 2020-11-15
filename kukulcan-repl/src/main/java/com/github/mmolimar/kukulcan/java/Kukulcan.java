@@ -36,10 +36,17 @@ public class Kukulcan {
         }
     };
 
-    private static KApi<Function<Topology, KStreams>> kStreamsApi = new KApi<>("streams") {
+    private static KApi<Function<Topology, KStreams>> kstreamsApi = new KApi<>("streams") {
         @Override
         public Function<Topology, KStreams> createInstance(Properties props) {
             return (topology -> new KStreams(topology, props));
+        }
+    };
+
+    private static KApi<KSchemaRegistry> kschemaRegistryApi = new KApi<>("schema-registry") {
+        @Override
+        public KSchemaRegistry createInstance(Properties props) {
+            return new KSchemaRegistry(props);
         }
     };
 
@@ -93,7 +100,17 @@ public class Kukulcan {
      * @return The KStreams instance initialized.
      */
     public static KStreams streams(Topology topology) {
-        return kStreamsApi.inst().apply(topology);
+        return kstreamsApi.inst().apply(topology);
+    }
+
+    /**
+     * Create a KSchemaRegistry instance reading the {@code schema-registry.properties} file.
+     * If the instance was already created, it will be reused.
+     *
+     * @return The KSchemaRegistry instance initialized.
+     */
+    public static KSchemaRegistry schemaRegistry() {
+        return kschemaRegistryApi.inst();
     }
 
     /**
@@ -105,7 +122,8 @@ public class Kukulcan {
         kconsumerApi.reload();
         kproducerApi.reload();
         kconnectApi.reload();
-        kStreamsApi.reload();
+        kstreamsApi.reload();
+        kschemaRegistryApi.reload();
         System.out.println("Done!");
     }
 }
