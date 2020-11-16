@@ -9,7 +9,8 @@ val predefCode =
      |  List(
      |  coursierapi.Repository.ivy2Local,
      |  coursierapi.Repository.central,
-     |  MavenRepository.of("https://packages.confluent.io/maven/"))
+     |  MavenRepository.of("https://packages.confluent.io/maven/"),
+     |  MavenRepository.of("https://jitpack.io/"))
      |)
      |@
      |
