@@ -1,5 +1,6 @@
 package com.github.mmolimar.kukulcan.java;
 
+import com.github.mmolimar.kukulcan.KKsql;
 import com.github.mmolimar.kukulcan.repl.KApi;
 import org.apache.kafka.streams.Topology;
 
@@ -47,6 +48,13 @@ public class Kukulcan {
         @Override
         public KSchemaRegistry createInstance(Properties props) {
             return new KSchemaRegistry(props);
+        }
+    };
+
+    private static KApi<KKsql> kksqlApi = new KApi<>("ksqldb") {
+        @Override
+        public KKsql createInstance(Properties props) {
+            return new KKsql(props);
         }
     };
 
@@ -114,6 +122,16 @@ public class Kukulcan {
     }
 
     /**
+     * Create a KKsql instance reading the {@code ksqldb.properties} file.
+     * If the instance was already created, it will be reused.
+     *
+     * @return The KKsql instance initialized.
+     */
+    public static KKsql ksqldb() {
+        return kksqlApi.inst();
+    }
+
+    /**
      * Re-create all instances using their properties files.
      *
      */
@@ -124,6 +142,7 @@ public class Kukulcan {
         kconnectApi.reload();
         kstreamsApi.reload();
         kschemaRegistryApi.reload();
+        kksqlApi.reload();
         System.out.println("Done!");
     }
 }
