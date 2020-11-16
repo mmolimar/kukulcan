@@ -32,6 +32,7 @@ lazy val settings = new {
       "io.confluent" % "kafka-schema-registry-client" % confluentVersion,
       "io.confluent" % "kafka-json-schema-provider" % confluentVersion,
       "io.confluent" % "kafka-protobuf-provider" % confluentVersion,
+      "io.confluent.ksql" % "ksqldb-cli" % confluentVersion,
       "com.github.mutcianm" %% "ascii-graphs" % asciiGraphsVersion,
 
       "org.scalatest" %% "scalatest-wordspec" % scalaTestVersion % Test,
