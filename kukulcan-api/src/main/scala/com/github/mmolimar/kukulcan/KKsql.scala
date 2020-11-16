@@ -34,8 +34,8 @@ class KKsql(val props: Properties) {
 
   import scala.language.implicitConversions
 
-  private val defaultTimeout = 10000L
   private val client: KsqlRestClient = fromProps(props)
+  private lazy val defaultRequestTimeout = props.getProperty("ksql.request.timeout", "10000").toLong
 
   private def fromProps(props: Properties): KsqlRestClient = {
     val systemProps = System.getProperties
@@ -113,7 +113,8 @@ class KKsql(val props: Properties) {
    */
   def makeHeartbeatRequest: HeartbeatResponse = {
     val hostInfo = new KsqlHostInfoEntity(getServerAddress.getHost, getServerAddress.getPort)
-    client.makeAsyncHeartbeatRequest(hostInfo, System.currentTimeMillis).get(defaultTimeout, TimeUnit.MILLISECONDS)
+    client.makeAsyncHeartbeatRequest(hostInfo, System.currentTimeMillis)
+      .get(defaultRequestTimeout, TimeUnit.MILLISECONDS)
   }
 
   /**
@@ -207,9 +208,9 @@ class KKsql(val props: Properties) {
    *
    */
   def console(): Unit = {
-    val streamQueryRowLimit = props.getOrDefault("ksql.query.stream.row.limit", "100").toString.toLong
-    val streamQueryTimeout = props.getOrDefault("ksql.query.timeout", "10000").toString.toLong
-    val outputFormat = OutputFormat.valueOf(props.getOrDefault("ksql.output.format", "TABULAR").toString.toUpperCase)
+    val streamQueryRowLimit = props.getOrDefault("ksql.cli.query.stream.row.limit", "100").toString.toLong
+    val streamQueryTimeout = props.getOrDefault("ksql.cli.query.stream.timeout", "10000").toString.toLong
+    val outputFormat = OutputFormat.valueOf(props.getOrDefault("ksql.cli.output.format", "TABULAR").toString.toUpperCase)
     val cli = Cli.build(streamQueryRowLimit, streamQueryTimeout, outputFormat, client)
     cli.runInteractively()
   }
