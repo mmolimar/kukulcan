@@ -3,7 +3,7 @@ package com.github.mmolimar.kukulcan
 import _root_.java.util.Properties
 
 import kafka.admin.AdminOperationException
-import kafka.utils.Whitelist
+import kafka.utils.IncludeList
 import org.apache.kafka.clients.admin._
 
 import scala.collection.JavaConverters._
@@ -164,19 +164,19 @@ class KAdmin(val props: Properties) {
     /**
      * List the topics available in the cluster.
      *
-     * @param topicWhitelist        {@code Option[String]} whitelist to filter the available topics.
+     * @param topicIncludelist      {@code Option[String]} whitelist to filter the available topics.
      * @param excludeInternalTopics If exclude internal topics in the returned list.
      * @return A list with topic names.
      */
-    def getTopics(topicWhitelist: Option[String] = None, excludeInternalTopics: Boolean = false): Seq[String] = {
+    def getTopics(topicIncludelist: Option[String] = None, excludeInternalTopics: Boolean = false): Seq[String] = {
       val allTopics = (if (excludeInternalTopics) {
         client.listTopics
       } else {
         client.listTopics(new ListTopicsOptions().listInternal(true))
       }).names.get.asScala.toSeq.sorted
 
-      if (topicWhitelist.isDefined) {
-        val topicsFilter = Whitelist(topicWhitelist.get)
+      if (topicIncludelist.isDefined) {
+        val topicsFilter = IncludeList(topicIncludelist.get)
         allTopics.filter(topicsFilter.isTopicAllowed(_, excludeInternalTopics))
       } else {
         allTopics.filterNot(Topic.isInternal(_) && excludeInternalTopics)
