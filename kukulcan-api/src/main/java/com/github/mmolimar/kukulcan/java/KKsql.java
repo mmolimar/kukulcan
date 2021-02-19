@@ -148,8 +148,9 @@ public class KKsql {
      * @param properties    Custom properties to send to KSQL.
      * @return a {@code Seq[StreamedRow]} with the result.
      */
-    public List<StreamedRow> makeQueryRequest(String ksql, long commandSeqNum, Map<String, Object> properties) {
-        return toJavaList(kksql.makeQueryRequest(ksql, commandSeqNum, toScalaMap(properties)));
+    public List<StreamedRow> makeQueryRequest(String ksql, long commandSeqNum,
+                                              Map<String, Object> properties, Map<String, Object> request) {
+        return toJavaList(kksql.makeQueryRequest(ksql, commandSeqNum, toScalaMap(properties), toScalaMap(request)));
     }
 
     /**

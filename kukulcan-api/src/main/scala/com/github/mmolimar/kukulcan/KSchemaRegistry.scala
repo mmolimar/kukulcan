@@ -35,7 +35,7 @@ class KSchemaRegistry(val props: Properties) {
   private def fromProps(props: Properties): KCachedSchemaRegistryClient = {
     val baseUrls: JList[String] = JArrays.asList(props.getProperty("schema.registry.url").split(",")
       .filter(_.trim.nonEmpty): _*)
-    val mapCapacity = props.getOrDefault("max.schemas.per.subject", 1000).toString.toInt
+    val mapCapacity = props.getOrDefault("max.schemas.per.subject", "1000").toString.toInt
     val providers: JList[SchemaProvider] = JArrays
       .asList(new AvroSchemaProvider, new JsonSchemaProvider, new ProtobufSchemaProvider)
     val httpHeaders = props.keys().asScala.filter(_.toString.startsWith("request.header."))
@@ -66,8 +66,10 @@ class KSchemaRegistry(val props: Properties) {
       httpHeaders
     ) {
 
-    def testCompatibility(subject: String, schema: ParsedSchema, version: String): Boolean = {
-      restService.testCompatibility(schema.canonicalString, schema.schemaType, schema.references, subject, version)
+    def testCompatibility(subject: String, schema: ParsedSchema, version: String, verbose: Boolean): Seq[String] = {
+      restService.testCompatibility(
+        schema.canonicalString, schema.schemaType, schema.references, subject, version, verbose
+      ).asScala
     }
   }
 
@@ -180,10 +182,16 @@ class KSchemaRegistry(val props: Properties) {
    * @param subject The schema subject.
    * @param schema  The parsed schema to validate.
    * @param version The schema version to validate. Latest version by default.
-   * @return if the schema was validated or not.
+   * @param verbose Enable verbose messages from Schema Registry.
+   * @return list with the incompatibilities, if any.
    */
-  def testCompatibility(subject: String, schema: ParsedSchema, version: String = "latest"): Boolean = {
-    client.testCompatibility(subject, schema, version)
+  def testCompatibility(
+                         subject: String,
+                         schema: ParsedSchema,
+                         version: String = "latest",
+                         verbose: Boolean = false
+                       ): Seq[String] = {
+    client.testCompatibility(subject, schema, version, verbose)
   }
 
   /**
@@ -267,7 +275,7 @@ class KSchemaRegistry(val props: Properties) {
    * @return a list with all versions deleted.
    */
   def deleteSubject(subject: String, requestProperties: Map[String, String]): Seq[Integer] = {
-    client.deleteSubject(requestProperties.asJava, subject).asScala.toSeq
+    client.deleteSubject(requestProperties.asJava, subject).asScala
   }
 
   /**

@@ -163,10 +163,34 @@ public class KSchemaRegistry {
      *
      * @param subject The schema subject.
      * @param schema  The parsed schema to validate.
-     * @return if the schema was validated or not.
+     * @return list with the incompatibilities, if any.
      */
-    public boolean testCompatibility(String subject, ParsedSchema schema) {
-        return testCompatibility(subject, schema, "latest");
+    public List<String> testCompatibility(String subject, ParsedSchema schema) {
+        return testCompatibility(subject, schema, "latest", false);
+    }
+
+    /**
+     * Check the compatibility for a schema in a subject for the latest version.
+     *
+     * @param subject The schema subject.
+     * @param schema  The parsed schema to validate.
+     * @param verbose Enable verbose messages from Schema Registry.
+     * @return list with the incompatibilities, if any.
+     */
+    public List<String> testCompatibility(String subject, ParsedSchema schema, boolean verbose) {
+        return testCompatibility(subject, schema, "latest", verbose);
+    }
+
+    /**
+     * Check the compatibility for a schema in a subject for the latest version.
+     *
+     * @param subject The schema subject.
+     * @param schema  The parsed schema to validate.
+     * @param version The schema version to validate.
+     * @return list with the incompatibilities, if any.
+     */
+    public List<String> testCompatibility(String subject, ParsedSchema schema, String version) {
+        return testCompatibility(subject, schema, version, false);
     }
 
     /**
@@ -174,11 +198,12 @@ public class KSchemaRegistry {
      *
      * @param subject The schema subject.
      * @param schema  The parsed schema to validate.
-     * @param version The schema version to validate. Latest version by default.
-     * @return if the schema was validated or not.
+     * @param version The schema version to validate.
+     * @param verbose Enable verbose messages from Schema Registry.
+     * @return list with the incompatibilities, if any.
      */
-    public boolean testCompatibility(String subject, ParsedSchema schema, String version) {
-        return kschemaRegistry.testCompatibility(subject, schema, version);
+    public List<String> testCompatibility(String subject, ParsedSchema schema, String version, boolean verbose) {
+        return toJavaList(kschemaRegistry.testCompatibility(subject, schema, version, verbose));
     }
 
     /**

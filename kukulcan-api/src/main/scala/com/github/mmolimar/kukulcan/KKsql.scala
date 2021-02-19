@@ -158,10 +158,15 @@ class KKsql(val props: Properties) {
    * @param ksql          The query to request.
    * @param commandSeqNum The previous command sequence number.
    * @param properties    Custom properties to send to KSQL.
+   * @param request       Request properties to send to KSQL.
    * @return a {@code Seq[StreamedRow]} with the result.
    */
-  def makeQueryRequest(ksql: String, commandSeqNum: Long, properties: Map[String, AnyRef]): Seq[StreamedRow] = {
-    manageResponse(client.makeQueryRequest(ksql, commandSeqNum, properties.asJava)).asScala
+  def makeQueryRequest(
+                        ksql: String, commandSeqNum: Long,
+                        properties: Map[String, AnyRef],
+                        request: Map[String, AnyRef]
+                      ): Seq[StreamedRow] = {
+    manageResponse(client.makeQueryRequest(ksql, commandSeqNum, properties.asJava, request.asJava)).asScala
   }
 
   /**

@@ -124,9 +124,11 @@ class KSchemaRegistrySpec extends KukulcanApiTestHarness with EmbeddedKafka {
     latestSchemaMetadata.getVersion shouldBe (schemaMetadata.getVersion + 1)
     latestSchemaMetadata.getReferences shouldBe schemaMetadata.getReferences
 
-    scalaApi.testCompatibility(subject, incompatibleParsedSchema) shouldBe false
-    scalaApi.testCompatibility(subject, compatibleParsedSchema) shouldBe true
-    scalaApi.testCompatibility(subject, parsedSchema) shouldBe false
+    scalaApi.testCompatibility(subject, incompatibleParsedSchema).head shouldBe "Schemas are incompatible"
+    scalaApi.testCompatibility(subject, incompatibleParsedSchema, verbose = true).head should startWith("Unable to read schema:")
+    scalaApi.testCompatibility(subject, compatibleParsedSchema, version = "12345").size shouldBe 0
+    scalaApi.testCompatibility(subject, compatibleParsedSchema).size shouldBe 0
+    scalaApi.testCompatibility(subject, parsedSchema).head shouldBe "Schemas are incompatible"
     scalaApi.updateCompatibility(subject, "FULL") shouldBe "FULL"
     scalaApi.getCompatibility(subject) shouldBe "FULL"
 
@@ -193,9 +195,11 @@ class KSchemaRegistrySpec extends KukulcanApiTestHarness with EmbeddedKafka {
     latestSchemaMetadata.getVersion shouldBe (schemaMetadata.getVersion + 1)
     latestSchemaMetadata.getReferences shouldBe schemaMetadata.getReferences
 
-    javaApi.testCompatibility(subject, incompatibleParsedSchema) shouldBe false
-    javaApi.testCompatibility(subject, compatibleParsedSchema) shouldBe true
-    javaApi.testCompatibility(subject, parsedSchema) shouldBe false
+    javaApi.testCompatibility(subject, incompatibleParsedSchema).get(0) shouldBe "Schemas are incompatible"
+    javaApi.testCompatibility(subject, incompatibleParsedSchema, true).get(0) should startWith("Unable to read schema:")
+    javaApi.testCompatibility(subject, compatibleParsedSchema, "12345").size shouldBe 0
+    javaApi.testCompatibility(subject, compatibleParsedSchema).size shouldBe 0
+    javaApi.testCompatibility(subject, parsedSchema).get(0) shouldBe "Schemas are incompatible"
     javaApi.updateCompatibility(subject, "FULL") shouldBe "FULL"
     javaApi.getCompatibility(subject) shouldBe "FULL"
 
