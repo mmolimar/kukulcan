@@ -15,16 +15,10 @@ lazy val settings = new {
     val confluentVersion = "6.1.0"
     val kafkaVersion = "2.7.0"
     val kafkaConnectClientVersion = "3.1.0"
-    val jacksonVersion = "2.10.5"
 
     val scalaTestVersion = "3.2.3"
 
-    val mainExclusions = ExclusionRule(organization = "org.apache.kafka")
-    val testExclusions = Seq(
-      ExclusionRule(organization = "org.apache.kafka"),
-      ExclusionRule(organization = "com.fasterxml.jackson.core"),
-      ExclusionRule(organization = "com.fasterxml.jackson.dataformat")
-    )
+    val exclusions = ExclusionRule(organization = "org.apache.kafka")
     val api = Seq(
       "org.scala-lang" % "scala-compiler" % projectScalaVersion,
       "org.apache.kafka" %% "kafka" % kafkaVersion,
@@ -36,17 +30,16 @@ lazy val settings = new {
       "io.circe" %% "circe-core" % circeVersion,
       "io.circe" %% "circe-generic" % circeVersion,
       "io.circe" %% "circe-parser" % circeVersion,
-      "io.confluent" % "kafka-schema-registry-client" % confluentVersion excludeAll mainExclusions,
-      "io.confluent" % "kafka-json-schema-provider" % confluentVersion excludeAll mainExclusions,
-      "io.confluent" % "kafka-protobuf-provider" % confluentVersion excludeAll mainExclusions,
-      "io.confluent.ksql" % "ksqldb-cli" % confluentVersion excludeAll mainExclusions,
+      "io.confluent" % "kafka-schema-registry-client" % confluentVersion excludeAll exclusions,
+      "io.confluent" % "kafka-json-schema-provider" % confluentVersion excludeAll exclusions,
+      "io.confluent" % "kafka-protobuf-provider" % confluentVersion excludeAll exclusions,
+      "io.confluent.ksql" % "ksqldb-cli" % confluentVersion excludeAll exclusions,
       "com.github.mutcianm" %% "ascii-graphs" % asciiGraphsVersion,
 
       "org.scalatest" %% "scalatest-wordspec" % scalaTestVersion % Test,
       "org.scalatest" %% "scalatest-shouldmatchers" % scalaTestVersion % Test,
-      "io.github.embeddedkafka" %% "embedded-kafka-schema-registry" % confluentVersion % Test excludeAll (testExclusions: _*)
+      "io.github.embeddedkafka" %% "embedded-kafka-schema-registry" % confluentVersion % Test excludeAll exclusions
     )
-    val overrides = "com.fasterxml.jackson.core" % "jackson-annotations" % jacksonVersion
     val repl = Seq.empty
     val root = Seq.empty
   }
@@ -78,8 +71,7 @@ lazy val settings = new {
   )
   val api = Seq(
     name := "kukulcan-api",
-    libraryDependencies ++= dependencies.api,
-    dependencyOverrides += dependencies.overrides
+    libraryDependencies ++= dependencies.api
   )
   val repl = Seq(
     name := "kukulcan-repl",
