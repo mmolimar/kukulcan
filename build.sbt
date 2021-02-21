@@ -38,7 +38,9 @@ lazy val settings = new {
 
       "org.scalatest" %% "scalatest-wordspec" % scalaTestVersion % Test,
       "org.scalatest" %% "scalatest-shouldmatchers" % scalaTestVersion % Test,
-      "io.github.embeddedkafka" %% "embedded-kafka-schema-registry" % confluentVersion % Test excludeAll exclusions
+      "org.apache.kafka" % "connect-runtime" % kafkaVersion % Test,
+      "io.github.embeddedkafka" %% "embedded-kafka-schema-registry" % confluentVersion % Test excludeAll exclusions,
+      "io.confluent.ksql" % "ksqldb-rest-app" % confluentVersion % Test excludeAll exclusions
     )
     val repl = Seq.empty
     val root = Seq.empty
@@ -71,7 +73,8 @@ lazy val settings = new {
   )
   val api = Seq(
     name := "kukulcan-api",
-    libraryDependencies ++= dependencies.api
+    libraryDependencies ++= dependencies.api,
+    parallelExecution in Test := false
   )
   val repl = Seq(
     name := "kukulcan-repl",

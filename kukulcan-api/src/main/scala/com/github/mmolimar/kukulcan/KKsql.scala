@@ -40,7 +40,7 @@ class KKsql(val props: Properties) {
   private def fromProps(props: Properties): KsqlRestClient = {
     val systemProps = System.getProperties
     val scalaProps = props.asScala.map {
-      case (k, v) => k -> v.toString
+      case (k, v) => k -> v
     }.toMap
 
     val serverAddress = props.getProperty("ksql.server")
@@ -130,7 +130,7 @@ class KKsql(val props: Properties) {
    * @param ksql The command to request.
    * @return a list of {@code KsqlEntity} with the result.
    */
-  def makeKsqlRequest(ksql: String): KsqlEntityList = client.makeKsqlRequest(ksql)
+    def makeKsqlRequest(ksql: String): KsqlEntityList = client.makeKsqlRequest(ksql)
 
   /**
    * Make a KSQL request with a command.
@@ -146,25 +146,15 @@ class KKsql(val props: Properties) {
    *
    * @param ksql          The query to request.
    * @param commandSeqNum The previous command sequence number.
-   * @return a {@code Seq[StreamedRow]} with the result.
-   */
-  def makeQueryRequest(ksql: String, commandSeqNum: Long): Seq[StreamedRow] = {
-    manageResponse(client.makeQueryRequest(ksql, commandSeqNum)).asScala
-  }
-
-  /**
-   * Make a query into KSQL.
-   *
-   * @param ksql          The query to request.
-   * @param commandSeqNum The previous command sequence number.
-   * @param properties    Custom properties to send to KSQL.
-   * @param request       Request properties to send to KSQL.
+   * @param properties    Custom properties to send to KSQL. Default empty.
+   * @param request       Request properties to send to KSQL. Default empty.
    * @return a {@code Seq[StreamedRow]} with the result.
    */
   def makeQueryRequest(
-                        ksql: String, commandSeqNum: Long,
-                        properties: Map[String, AnyRef],
-                        request: Map[String, AnyRef]
+                        ksql: String,
+                        commandSeqNum: Long,
+                        properties: Map[String, AnyRef] = Map.empty,
+                        request: Map[String, AnyRef] = Map.empty,
                       ): Seq[StreamedRow] = {
     manageResponse(client.makeQueryRequest(ksql, commandSeqNum, properties.asJava, request.asJava)).asScala
   }

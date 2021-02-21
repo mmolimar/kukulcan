@@ -4,6 +4,7 @@ import io.confluent.ksql.rest.client.StreamPublisher;
 import io.confluent.ksql.rest.entity.*;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -137,7 +138,7 @@ public class KKsql {
      * @return a {@code Seq[StreamedRow]} with the result.
      */
     public List<StreamedRow> makeQueryRequest(String ksql, long commandSeqNum) {
-        return toJavaList(kksql.makeQueryRequest(ksql, commandSeqNum));
+        return toJavaList(kksql.makeQueryRequest(ksql, commandSeqNum, toScalaMap(Collections.emptyMap()), toScalaMap(Collections.emptyMap())));
     }
 
     /**
@@ -150,7 +151,9 @@ public class KKsql {
      */
     public List<StreamedRow> makeQueryRequest(String ksql, long commandSeqNum,
                                               Map<String, Object> properties, Map<String, Object> request) {
-        return toJavaList(kksql.makeQueryRequest(ksql, commandSeqNum, toScalaMap(properties), toScalaMap(request)));
+        return toJavaList(
+                kksql.makeQueryRequest(ksql, commandSeqNum, toScalaMap(properties), toScalaMap(request))
+        );
     }
 
     /**
@@ -171,7 +174,7 @@ public class KKsql {
      * @param commandSeqNum The previous command sequence number.
      * @return a {@code StreamPublisher[StreamedRow]} with the result.
      */
-    public StreamPublisher<String> makePrintTopicRequest(String ksql, int commandSeqNum) {
+    public StreamPublisher<String> makePrintTopicRequest(String ksql, long commandSeqNum) {
         return kksql.makePrintTopicRequest(ksql, commandSeqNum);
     }
 

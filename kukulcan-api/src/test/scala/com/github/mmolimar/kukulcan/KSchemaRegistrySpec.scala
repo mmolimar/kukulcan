@@ -1,7 +1,5 @@
 package com.github.mmolimar.kukulcan
 
-import _root_.java.util.{Collections, Properties, Arrays => JArrays}
-
 import _root_.com.github.mmolimar.kukulcan.java.{KSchemaRegistry => JKSchemaRegistry}
 import _root_.com.github.mmolimar.kukulcan.{KSchemaRegistry => SKSchemaRegistry}
 import io.confluent.kafka.schemaregistry.client.rest.entities.SubjectVersion
@@ -9,12 +7,11 @@ import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientExcept
 import io.confluent.kafka.schemaregistry.rest.SchemaRegistryConfig
 import net.manub.embeddedkafka.schemaregistry.{EmbeddedKafka, EmbeddedKafkaConfig}
 
+import _root_.java.util.{Collections, Properties, Arrays => JArrays}
+
 class KSchemaRegistrySpec extends KukulcanApiTestHarness with EmbeddedKafka {
 
-  implicit val config: EmbeddedKafkaConfig = EmbeddedKafkaConfig(
-    kafkaPort = KAFKA_PORT,
-    zooKeeperPort = ZOOKEEPER_PORT,
-    schemaRegistryPort = SCHEMA_REGISTRY_PORT,
+  lazy implicit val config: EmbeddedKafkaConfig = EmbeddedKafkaConfig(
     customSchemaRegistryProperties = Map(
       SchemaRegistryConfig.MODE_MUTABILITY -> "true"
     )
@@ -79,7 +76,7 @@ class KSchemaRegistrySpec extends KukulcanApiTestHarness with EmbeddedKafka {
   override def execScalaTests(): Unit = withRunningKafka {
     val scalaApi: SKSchemaRegistry = {
       val props = new Properties()
-      props.put("schema.registry.url", s"http://localhost:$SCHEMA_REGISTRY_PORT")
+      props.put("schema.registry.url", s"http://localhost:${config.schemaRegistryPort}")
       SKSchemaRegistry(props)
     }
 
@@ -150,7 +147,7 @@ class KSchemaRegistrySpec extends KukulcanApiTestHarness with EmbeddedKafka {
   override def execJavaTests(): Unit = withRunningKafka {
     val javaApi: JKSchemaRegistry = {
       val props = new Properties()
-      props.put("schema.registry.url", s"http://localhost:$SCHEMA_REGISTRY_PORT")
+      props.put("schema.registry.url", s"http://localhost:${config.schemaRegistryPort}")
       new JKSchemaRegistry(props)
     }
 
