@@ -39,6 +39,7 @@ lazy val settings = new {
       "org.scalatest" %% "scalatest-wordspec" % scalaTestVersion % Test,
       "org.scalatest" %% "scalatest-shouldmatchers" % scalaTestVersion % Test,
       "org.apache.kafka" % "connect-runtime" % kafkaVersion % Test,
+      "org.apache.kafka" % "connect-file" % kafkaVersion % Test,
       "io.github.embeddedkafka" %% "embedded-kafka-schema-registry" % confluentVersion % Test excludeAll exclusions,
       "io.confluent.ksql" % "ksqldb-rest-app" % confluentVersion % Test excludeAll exclusions
     )

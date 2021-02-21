@@ -115,12 +115,12 @@ public class KConnect {
     /**
      * Validate a connector plugin config.
      *
-     * @param name   Connector name.
-     * @param config Configuration values for the connector.
+     * @param pluginName Connector plugin name.
+     * @param config     Configuration values for the connector.
      * @return A {@code ConnectorPluginValidation} with the results of the validation
      */
-    public ConnectorPluginValidation validateConnectorPluginConfig(String name, Map<String, String> config) {
-        return kconnect.validateConnectorPluginConfig(name, toScalaMap(config));
+    public ConnectorPluginValidation validateConnectorPluginConfig(String pluginName, Map<String, String> config) {
+        return kconnect.validateConnectorPluginConfig(pluginName, toScalaMap(config));
     }
 
     /**

@@ -169,13 +169,13 @@ class KConnect(val props: Properties) {
   /**
    * Validate a connector plugin config.
    *
-   * @param name   Connector name.
-   * @param config Configuration values for the connector.
+   * @param pluginName Connector plugin name.
+   * @param config     Configuration values for the connector.
    * @return A {@code ConnectorPluginValidation} with the results of the validation
    */
-  def validateConnectorPluginConfig(name: String, config: Map[String, String]): ConnectorPluginValidation = {
+  def validateConnectorPluginConfig(pluginName: String, config: Map[String, String]): ConnectorPluginValidation = {
     client.validateConnectorPluginConfig(
-      new JConnectorPluginConfigDefinition(name, config.asJava)
+      new JConnectorPluginConfigDefinition(pluginName, config.asJava)
     )
   }
 
