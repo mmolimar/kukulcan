@@ -124,10 +124,12 @@ class KKsqlSpec extends KukulcanApiTestHarness with EmbeddedKafka {
     }
     kadmin.topics.createTopic("test", 1, 1)
 
-    body
-
-    ksqlServer.notifyTerminated()
-    ksqlServer.shutdown()
+    try {
+      body
+    } finally {
+      ksqlServer.notifyTerminated()
+      ksqlServer.shutdown()
+    }
   }
 
 }
