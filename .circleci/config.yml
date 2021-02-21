@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 jobs:
   build:
     docker:
@@ -16,7 +16,12 @@ jobs:
           keys:
             - v1-dependencies-{{ checksum "build.sbt" }}
             - v1-dependencies-
-      - run: cat /dev/null | sbt clean kukulcan publishLocal
+      - run:
+          name: Compile and test
+          command: sbt clean test
+      - run:
+          name: Build and publish
+          command: sbt kukulcan publishLocal
       - save_cache:
           paths:
             - ~/.m2
