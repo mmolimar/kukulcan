@@ -174,7 +174,7 @@ class KSchemaRegistry(val props: Properties) {
    * @param subject The schema subject.
    * @return a list with the schema versions.
    */
-  def getAllVersions(subject: String): Seq[Integer] = client.getAllVersions(subject).asScala
+  def getAllVersions(subject: String): Seq[Int] = client.getAllVersions(subject).asScala.map(Int.unbox)
 
   /**
    * Check the compatibility for a schema in a subject for the specified version (latest by default).
@@ -265,7 +265,7 @@ class KSchemaRegistry(val props: Properties) {
    * @param subject The schema subject to delete.
    * @return a list with all versions deleted.
    */
-  def deleteSubject(subject: String): Seq[Integer] = client.deleteSubject(subject).asScala
+  def deleteSubject(subject: String): Seq[Int] = client.deleteSubject(subject).asScala.map(Int.unbox)
 
   /**
    * Delete all versions of the schema registered under a subject.
@@ -274,8 +274,8 @@ class KSchemaRegistry(val props: Properties) {
    * @param requestProperties Properties to set for the request.
    * @return a list with all versions deleted.
    */
-  def deleteSubject(subject: String, requestProperties: Map[String, String]): Seq[Integer] = {
-    client.deleteSubject(requestProperties.asJava, subject).asScala
+  def deleteSubject(subject: String, requestProperties: Map[String, String]): Seq[Int] = {
+    client.deleteSubject(requestProperties.asJava, subject).asScala.map(Int.unbox)
   }
 
   /**
@@ -285,7 +285,7 @@ class KSchemaRegistry(val props: Properties) {
    * @param version The version to delete.
    * @return the ID of the deleted version.
    */
-  def deleteSchemaVersion(subject: String, version: String): Integer = client.deleteSchemaVersion(subject, version)
+  def deleteSchemaVersion(subject: String, version: String): Int = client.deleteSchemaVersion(subject, version)
 
   /**
    * Delete a version of the schema registered under a subject.
@@ -295,7 +295,7 @@ class KSchemaRegistry(val props: Properties) {
    * @param requestProperties Properties to set for the request.
    * @return the ID of the deleted version.
    */
-  def deleteSchemaVersion(subject: String, version: String, requestProperties: Map[String, String]): Integer = {
+  def deleteSchemaVersion(subject: String, version: String, requestProperties: Map[String, String]): Int = {
     client.deleteSchemaVersion(requestProperties.asJava, subject, version)
   }
 

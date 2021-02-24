@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import static com.github.mmolimar.kukulcan.java.KUtils.*;
 
@@ -155,7 +156,10 @@ public class KSchemaRegistry {
      * @return a list with the schema versions.
      */
     public List<Integer> getAllVersions(String subject) {
-        return toJavaList(kschemaRegistry.getAllVersions(subject));
+        return toJavaList(kschemaRegistry.getAllVersions(subject))
+                .stream()
+                .map(v -> Integer.valueOf(v.toString()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -292,7 +296,10 @@ public class KSchemaRegistry {
      * @return a list with all versions deleted.
      */
     public List<Integer> deleteSubject(String subject) {
-        return toJavaList(kschemaRegistry.deleteSubject(subject));
+        return toJavaList(kschemaRegistry.deleteSubject(subject))
+                .stream()
+                .map(v -> Integer.valueOf(v.toString()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -303,7 +310,10 @@ public class KSchemaRegistry {
      * @return a list with all versions deleted.
      */
     public List<Integer> deleteSubject(String subject, Map<String, String> requestProperties) {
-        return toJavaList(kschemaRegistry.deleteSubject(subject, toScalaMap(requestProperties)));
+        return toJavaList(kschemaRegistry.deleteSubject(subject, toScalaMap(requestProperties)))
+                .stream()
+                .map(v -> Integer.valueOf(v.toString()))
+                .collect(Collectors.toList());
     }
 
     /**
