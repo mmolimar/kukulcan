@@ -2,7 +2,9 @@ package com.github.mmolimar.kukulcan
 
 import _root_.com.github.mmolimar.kukulcan.java.{KProducer => JKProducer}
 import _root_.com.github.mmolimar.kukulcan.{KProducer => SKProducer}
+
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
+import org.apache.kafka.clients.producer.KafkaProducer
 
 import _root_.java.util.Properties
 
@@ -21,6 +23,8 @@ class KProducerSpec extends KukulcanApiTestHarness with EmbeddedKafka {
       SKProducer[String, String](props)
     }
 
+    scalaApi.isInstanceOf[KafkaProducer[String, String]] shouldBe true
+
     scalaApi.getMetrics shouldBe scalaApi.getMetrics(".*", ".*")
     scalaApi.getMetrics("app-info", "version").head._2.metricValue() shouldBe "2.7.0"
 
@@ -36,6 +40,8 @@ class KProducerSpec extends KukulcanApiTestHarness with EmbeddedKafka {
       props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
       new JKProducer[String, String](props)
     }
+
+    javaApi.isInstanceOf[KafkaProducer[String, String]] shouldBe true
 
     javaApi.getMetrics shouldBe javaApi.getMetrics(".*", ".*")
     javaApi.getMetrics("app-info", "version").values().iterator().next().metricValue() shouldBe "2.7.0"

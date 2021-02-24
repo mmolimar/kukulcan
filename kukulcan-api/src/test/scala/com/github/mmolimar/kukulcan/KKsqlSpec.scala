@@ -14,8 +14,8 @@ class KKsqlSpec extends KukulcanApiTestHarness with EmbeddedKafka {
 
   lazy implicit val config: EmbeddedKafkaConfig = EmbeddedKafkaConfig()
 
-  val KSQL_PORT = 37003
-  val ksqlListener = s"http://localhost:$KSQL_PORT"
+  val ksqlPort = 37073
+  val ksqlListener = s"http://localhost:$ksqlPort"
 
   override def apiClass: Class[_] = classOf[SKKsql]
 

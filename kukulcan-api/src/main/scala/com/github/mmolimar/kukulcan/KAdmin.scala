@@ -7,7 +7,7 @@ import kafka.utils.IncludeList
 import org.apache.kafka.clients.admin._
 
 import scala.collection.JavaConverters._
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /**
  * Factory for [[com.github.mmolimar.kukulcan.KAdmin]] instances.
@@ -101,18 +101,19 @@ class KAdmin(val props: Properties) {
      * This operation is not transactional so it may succeed for some topics while fail for others.
      *
      * @param name               Topic name.
-     * @param replicaAssignments A {@code Map[Integer, Seq[Integer]]} from partition id to replica ids.
+     * @param replicaAssignments A {@code Map[Int, Seq[Int]]} from partition id to replica ids.
      * @param configs            Extra configuration options for the topic.
      * @param options            {@code Option[CreateTopicsOptions]} extra create topics options.
      * @return If the topic was created or not.
      */
     def createTopicWithReplicasAssignments(
                                             name: String,
-                                            replicaAssignments: Map[Integer, Seq[Integer]],
+                                            replicaAssignments: Map[Int, Seq[Int]],
                                             configs: Map[String, String] = Map.empty,
                                             options: Option[CreateTopicsOptions] = None
                                           ): Boolean = {
-      val topic = new NewTopic(name, replicaAssignments.map(r => r._1 -> r._2.asJava).asJava)
+      val topic = new NewTopic(name, replicaAssignments
+        .map(r => Int.box(r._1) -> r._2.map(Int.box).asJava).asJava)
         .configs(configs.asJava)
       createTopics(Seq(topic), options)
     }
@@ -134,30 +135,32 @@ class KAdmin(val props: Properties) {
           Try {
             r._2.get
             println(s"Created topic $topic on brokers at $servers")
-            Some(topic)
-          }.failed.toOption.flatMap(_.getCause match {
-            case _: TopicExistsException =>
-              println(s"Found existing topic '$topic' on the brokers at $servers")
-              Some(topic)
-            case _: UnsupportedVersionException =>
-              Console.err.println(s"Unable to create topic(s) '${newTopics.map(_.name).mkString(", ")}' since the " +
-                s"brokers at $servers do not support the CreateTopics API. Falling back to assume topic(s) exist or " +
-                s"will be auto-created by the broker.")
-              None
-            case _: ClusterAuthorizationException =>
-              Console.err.println(s"Not authorized to create topic(s) '${newTopics.map(_.name).mkString(", ")}' upon " +
-                s"the brokers $servers. Falling back to assume topic(s) exist or will be auto-created by the broker.")
-              None
-            case _: TopicAuthorizationException =>
-              Console.err.println(s"Not authorized to create topic(s) '{${newTopics.map(_.name).mkString(", ")}}' " +
-                s"upon the brokers $servers. Falling back to assume topic(s) exist or will be auto-created by " +
-                s"the broker.")
-              None
-            case e: Throwable =>
-              throw new AdminOperationException(s"Error while attempting to create topic(s) " +
-                s"'${newTopics.map(_.name).mkString(", ")}'", e)
-          }).filter(_.nonEmpty)
-        }.toSet
+          } match {
+            case Success(s) => Some(topic)
+            case Failure(e) => e.getCause match {
+              case _: TopicExistsException =>
+                println(s"Found existing topic '$topic' on the brokers at $servers")
+                Some(topic)
+              case _: UnsupportedVersionException =>
+                Console.err.println(s"Unable to create topic(s) '${newTopics.map(_.name).mkString(", ")}' since the " +
+                  s"brokers at $servers do not support the CreateTopics API. Falling back to assume topic(s) exist or " +
+                  s"will be auto-created by the broker.")
+                None
+              case _: ClusterAuthorizationException =>
+                Console.err.println(s"Not authorized to create topic(s) '${newTopics.map(_.name).mkString(", ")}' upon " +
+                  s"the brokers $servers. Falling back to assume topic(s) exist or will be auto-created by the broker.")
+                None
+              case _: TopicAuthorizationException =>
+                Console.err.println(s"Not authorized to create topic(s) '{${newTopics.map(_.name).mkString(", ")}}' " +
+                  s"upon the brokers $servers. Falling back to assume topic(s) exist or will be auto-created by " +
+                  s"the broker.")
+                None
+              case e: Throwable =>
+                throw new AdminOperationException(s"Error while attempting to create topic(s) " +
+                  s"'${newTopics.map(_.name).mkString(", ")}'", e)
+            }
+          }
+        }.toSet.filter(_.nonEmpty)
       newTopics.forall(newTopic => createdTopics.contains(newTopic.name()))
     }
 
@@ -371,7 +374,7 @@ class KAdmin(val props: Properties) {
         if (replicaAssignment.nonEmpty) {
           validateReplicaAssignment()
           val partitionId = topicsInfo.get(topicName).get.partitions.size
-          val newAssignment = replicaAssignment.drop(partitionId).values.map(_.map(Integer.valueOf).asJava).toSeq.asJava
+          val newAssignment = replicaAssignment.drop(partitionId).values.map(_.map(Int.box).asJava).toSeq.asJava
           topicName -> NewPartitions.increaseTo(partitions, newAssignment)
         } else {
           topicName -> NewPartitions.increaseTo(partitions)
@@ -427,17 +430,28 @@ class KAdmin(val props: Properties) {
                            includeSynonyms: Boolean,
                            describeAll: Boolean
                          ): Seq[ConfigEntry] = {
+      def validateBrokerId(): Unit = try entityName.toInt catch {
+        case _: NumberFormatException =>
+          throw new IllegalArgumentException(s"The entity name for $entityType must be a valid integer broker id, found: $entityName")
+      }
+
       val (configResourceType, dynamicConfigSource) = entityType match {
         case ConfigType.Topic =>
-          if (!entityName.isEmpty) {
+          if (entityName.nonEmpty) {
             Topic.validate(entityName)
           }
           (ConfigResource.Type.TOPIC, Some(ConfigEntry.ConfigSource.DYNAMIC_TOPIC_CONFIG))
         case ConfigType.Broker => entityName match {
           case "" => (ConfigResource.Type.BROKER, Some(ConfigEntry.ConfigSource.DYNAMIC_DEFAULT_BROKER_CONFIG))
-          case _ => (ConfigResource.Type.BROKER, Some(ConfigEntry.ConfigSource.DYNAMIC_BROKER_CONFIG))
+          case _ =>
+            validateBrokerId()
+            (ConfigResource.Type.BROKER, Some(ConfigEntry.ConfigSource.DYNAMIC_BROKER_CONFIG))
         }
-        case BrokerLoggerConfigType => (ConfigResource.Type.BROKER_LOGGER, None)
+        case BrokerLoggerConfigType =>
+          if (entityName.nonEmpty) {
+            validateBrokerId()
+          }
+          (ConfigResource.Type.BROKER_LOGGER, None)
       }
       val configSourceFilter = if (describeAll) None else dynamicConfigSource
       val configResource = new ConfigResource(configResourceType, entityName)
@@ -542,16 +556,16 @@ class KAdmin(val props: Properties) {
      * Updates are not transactional so they may succeed for some resources while fail for others. The configs for
      * a particular resource are updated atomically.
      *
-     * @param brokerId           {@code Option[Int]} broker to update. If {@code None}, apply to all brokers.
+     * @param brokerId           {@code Int} broker to update.
      * @param configsToBeAdded   {@code Map[String, String]} with the configs to add.
      * @param configsToBeDeleted {@code Seq[String]} with the configs to delete.
      */
     def alterBrokerLoggerConfig(
-                                 brokerId: Option[Int],
+                                 brokerId: Int,
                                  configsToBeAdded: Map[String, String],
                                  configsToBeDeleted: Seq[String]
                                ): Unit = {
-      val validLoggers = getConfig(BrokerLoggerConfigType, brokerId.map(_.toString).getOrElse(""),
+      val validLoggers = getConfig(BrokerLoggerConfigType, brokerId.toString,
         includeSynonyms = true, describeAll = false).map(_.name)
       val invalidBrokerLoggers = configsToBeDeleted.filterNot(validLoggers.contains) ++
         configsToBeAdded.keys.filterNot(validLoggers.contains)
@@ -560,7 +574,7 @@ class KAdmin(val props: Properties) {
       }
 
       val newConfigs = configsToBeAdded.map { case (k, v) => (k, new ConfigEntry(k, v)) }
-      val configResource = new ConfigResource(ConfigResource.Type.BROKER_LOGGER, brokerId.map(_.toString).getOrElse(""))
+      val configResource = new ConfigResource(ConfigResource.Type.BROKER_LOGGER, brokerId.toString)
       val alterOptions = new AlterConfigsOptions().timeoutMs(30000).validateOnly(false)
       val alterLogLevelEntries = (newConfigs.values.map(new AlterConfigOp(_, AlterConfigOp.OpType.SET))
         ++ configsToBeDeleted.map { k => new AlterConfigOp(new ConfigEntry(k, ""), AlterConfigOp.OpType.DELETE) }
@@ -568,7 +582,7 @@ class KAdmin(val props: Properties) {
       client.incrementalAlterConfigs(Map(configResource -> alterLogLevelEntries).asJava, alterOptions).all
         .get(60, TimeUnit.SECONDS)
 
-      printAlterConfigResult(BrokerLoggerConfigType, brokerId.map(_.toString).getOrElse(""))
+      printAlterConfigResult(BrokerLoggerConfigType, brokerId.toString)
     }
 
     private def getDescribeConfig(entities: Seq[String], entityType: String, describeAll: Boolean): Seq[ConfigEntry] = {

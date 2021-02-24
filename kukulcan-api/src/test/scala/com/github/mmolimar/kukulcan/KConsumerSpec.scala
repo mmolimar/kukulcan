@@ -2,7 +2,9 @@ package com.github.mmolimar.kukulcan
 
 import _root_.com.github.mmolimar.kukulcan.java.{KConsumer => JKConsumer}
 import _root_.com.github.mmolimar.kukulcan.{KConsumer => SKConsumer}
+
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
+import org.apache.kafka.clients.consumer.KafkaConsumer
 
 import _root_.java.util.Properties
 
@@ -28,6 +30,8 @@ class KConsumerSpec extends KukulcanApiTestHarness with EmbeddedKafka {
     }
     kadmin.topics.createTopic("test", 1, 1)
 
+    scalaApi.isInstanceOf[KafkaConsumer[String, String]] shouldBe true
+
     scalaApi.getMetrics shouldBe scalaApi.getMetrics(".*", ".*")
     scalaApi.getMetrics("app-info", "version").head._2.metricValue() shouldBe "2.7.0"
 
@@ -52,6 +56,8 @@ class KConsumerSpec extends KukulcanApiTestHarness with EmbeddedKafka {
       KAdmin(props)
     }
     kadmin.topics.createTopic("test", 1, 1)
+
+    javaApi.isInstanceOf[KafkaConsumer[String, String]] shouldBe true
 
     javaApi.getMetrics shouldBe javaApi.getMetrics(".*", ".*")
     javaApi.getMetrics("app-info", "version").values().iterator().next().metricValue() shouldBe "2.7.0"

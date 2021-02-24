@@ -32,7 +32,7 @@ public class KAdmin {
     /**
      * @param props Properties with the configuration.
      */
-    KAdmin(Properties props) {
+    public KAdmin(Properties props) {
         com.github.mmolimar.kukulcan.KAdmin admin = new com.github.mmolimar.kukulcan.KAdmin(props);
         this.servers = admin.servers();
         this.client = admin.client();
@@ -113,12 +113,24 @@ public class KAdmin {
          * @param name              Topic name.
          * @param partitions        Number of partitions.
          * @param replicationFactor Replication factor.
+         * @return If the topic was created or not.
+         */
+        public boolean createTopic(String name, int partitions, short replicationFactor) {
+            return createTopic(name, partitions, replicationFactor, Collections.emptyMap());
+        }
+
+        /**
+         * Create a new topic.
+         * This operation is not transactional so it may succeed for some topics while fail for others.
+         *
+         * @param name              Topic name.
+         * @param partitions        Number of partitions.
+         * @param replicationFactor Replication factor.
          * @param configs           Extra configuration options for the topic.
          * @return If the topic was created or not.
          */
         public boolean createTopic(String name, int partitions, short replicationFactor, Map<String, String> configs) {
-            NewTopic topic = new NewTopic(name, partitions, replicationFactor).configs(configs);
-            return createTopics(Collections.singletonList(topic), new CreateTopicsOptions());
+            return createTopic(name, partitions, replicationFactor, configs, new CreateTopicsOptions());
         }
 
         /**
@@ -143,11 +155,34 @@ public class KAdmin {
          * This operation is not transactional so it may succeed for some topics while fail for others.
          *
          * @param newTopics Topic list.
+         * @return If the topics were created or not.
+         */
+        public boolean createTopics(List<NewTopic> newTopics) {
+            return createTopics(newTopics, new CreateTopicsOptions());
+        }
+
+        /**
+         * Create a batch of new topics.
+         * This operation is not transactional so it may succeed for some topics while fail for others.
+         *
+         * @param newTopics Topic list.
          * @param options   Extra create topics options.
          * @return If the topics were created or not.
          */
         public boolean createTopics(List<NewTopic> newTopics, CreateTopicsOptions options) {
             return topics.createTopics(toScalaSeq(newTopics), scalaOption(options));
+        }
+
+        /**
+         * Create a new topic.
+         * This operation is not transactional so it may succeed for some topics while fail for others.
+         *
+         * @param name               Topic name.
+         * @param replicaAssignments A {@code Map[Integer, List[Integer]]} from partition id to replica ids.
+         * @return If the topic was created or not.
+         */
+        public boolean createTopicWithReplicasAssignments(String name, Map<Integer, List<Integer>> replicaAssignments) {
+            return createTopicWithReplicasAssignments(name, replicaAssignments, Collections.emptyMap());
         }
 
         /**
@@ -202,12 +237,20 @@ public class KAdmin {
         }
 
         /**
+         * Print the topics available in the cluster including the internal ones.
+         *
+         */
+        public void listTopics() {
+            listTopics(false);
+        }
+
+        /**
          * Print the topics available in the cluster.
          *
          * @param excludeInternalTopics If exclude internal topics in the returned list.
          */
         public void listTopics(boolean excludeInternalTopics) {
-            topics.listTopics(scalaOption(null), excludeInternalTopics);
+            listTopics(null, excludeInternalTopics);
         }
 
         /**
@@ -221,6 +264,15 @@ public class KAdmin {
         }
 
         /**
+         * Print the partition description related for a topic with configs and partitions.
+         *
+         * @param name           Topic name.
+         */
+        public void describeTopic(String name) {
+            describeTopic(name, true, true);
+        }
+
+        /**
          * Print the partition description related for a topic.
          *
          * @param name           Topic name.
@@ -229,6 +281,26 @@ public class KAdmin {
          */
         public void describeTopic(String name, boolean withConfigs, boolean withPartitions) {
             describeTopics(Collections.singletonList(name), new DescribeTopicsOptions(), withConfigs, withPartitions);
+        }
+
+        /**
+         * Print the partition description related for a topic with configs and partitions with the default
+         * describe topic options.
+         *
+         * @param topics         Topic list.
+         */
+        public void describeTopics(List<String> topics) {
+            describeTopics(topics, new DescribeTopicsOptions());
+        }
+
+        /**
+         * Print the partition description related for a topic with configs and partitions.
+         *
+         * @param topics         Topic list.
+         * @param options        Extra describe topics options.
+         */
+        public void describeTopics(List<String> topics, DescribeTopicsOptions options) {
+            describeTopics(topics, options, true, true);
         }
 
         /**
@@ -394,21 +466,37 @@ public class KAdmin {
          */
         public void alterBrokerLoggerConfig(int brokerId, Map<String, String> configsToBeAdded,
                                             List<String> configsToBeDeleted) {
-            configs.alterBrokerLoggerConfig(scalaOption(brokerId), toScalaMap(configsToBeAdded),
+            configs.alterBrokerLoggerConfig(brokerId, toScalaMap(configsToBeAdded),
                     toScalaSeq(configsToBeDeleted));
         }
 
         /**
-         * Modify a brokers logger configuration.
-         * Updates are not transactional so they may succeed for some resources while fail for others. The configs for
-         * a particular resource are updated atomically.
+         * Get each config entry for the topics.
          *
-         * @param configsToBeAdded   {@code Map[String, String]} with the configs to add.
-         * @param configsToBeDeleted {@code List[String]} with the configs to delete.
+         * @return A list with all config entries.
          */
-        public void alterBrokerLoggerConfig(Map<String, String> configsToBeAdded, List<String> configsToBeDeleted) {
-            configs.alterBrokerLoggerConfig(scalaOption(null), toScalaMap(configsToBeAdded),
-                    toScalaSeq(configsToBeDeleted));
+        public List<ConfigEntry> getDescribeTopicConfig() {
+            return getDescribeTopicConfig(true);
+        }
+
+        /**
+         * Get each config entry for the topics.
+         *
+         * @param describeAll If describe all configs.
+         * @return A list with all config entries.
+         */
+        public List<ConfigEntry> getDescribeTopicConfig(boolean describeAll) {
+            return toJavaList(configs.getDescribeTopicConfig(scalaOption(null), describeAll));
+        }
+
+        /**
+         * Get each config entry for the topic.
+         *
+         * @param name        Topic to describe.
+         * @return A list with all config entries.
+         */
+        public List<ConfigEntry> getDescribeTopicConfig(String name) {
+            return getDescribeTopicConfig(name, true);
         }
 
         /**
@@ -423,13 +511,32 @@ public class KAdmin {
         }
 
         /**
-         * Get each config entry for the topics.
+         * Get all config entries for the brokers.
+         *
+         * @return A list with all config entries.
+         */
+        public List<ConfigEntry> getDescribeBrokerConfig() {
+            return getDescribeBrokerConfig(true);
+        }
+
+        /**
+         * Get each config entry for the brokers.
          *
          * @param describeAll If describe all configs.
          * @return A list with all config entries.
          */
-        public List<ConfigEntry> getDescribeTopicConfig(boolean describeAll) {
-            return toJavaList(configs.getDescribeTopicConfig(scalaOption(null), describeAll));
+        public List<ConfigEntry> getDescribeBrokerConfig(boolean describeAll) {
+            return toJavaList(configs.getDescribeBrokerConfig(scalaOption(null), describeAll));
+        }
+
+        /**
+         * Get each config entry for the broker.
+         *
+         * @param brokerId    Broker id to describe.
+         * @return A list with all config entries.
+         */
+        public List<ConfigEntry> getDescribeBrokerConfig(int brokerId) {
+            return getDescribeBrokerConfig(brokerId, true);
         }
 
         /**
@@ -444,13 +551,32 @@ public class KAdmin {
         }
 
         /**
-         * Get each config entry for the brokers.
+         * Get each config entry for the brokers logger.
+         *
+         * @return A list with all config entries.
+         */
+        public List<ConfigEntry> getDescribeBrokerLoggerConfig() {
+            return getDescribeBrokerLoggerConfig(true);
+        }
+
+        /**
+         * Get each config entry for the broker(s) logger.
+         *
+         * @param brokerId    Broker id to describe.
+         * @return A list with all config entries.
+         */
+        public List<ConfigEntry> getDescribeBrokerLoggerConfig(int brokerId) {
+            return getDescribeBrokerLoggerConfig(brokerId, true);
+        }
+
+        /**
+         * Get each config entry for the brokers logger.
          *
          * @param describeAll If describe all configs.
          * @return A list with all config entries.
          */
-        public List<ConfigEntry> getDescribeBrokerConfig(boolean describeAll) {
-            return toJavaList(configs.getDescribeBrokerConfig(scalaOption(null), describeAll));
+        public List<ConfigEntry> getDescribeBrokerLoggerConfig(boolean describeAll) {
+            return toJavaList(configs.getDescribeBrokerLoggerConfig(scalaOption(null), describeAll));
         }
 
         /**
@@ -465,13 +591,29 @@ public class KAdmin {
         }
 
         /**
-         * Get each config entry for the brokers logger.
+         * Print each config entry for the topics.
+         *
+         */
+        public void describeTopicConfig() {
+            describeTopicConfig(true);
+        }
+
+        /**
+         * Print each config entry for the topic.
+         *
+         * @param name        Topic to describe.
+         */
+        public void describeTopicConfig(String name) {
+            describeTopicConfig(name, true);
+        }
+
+        /**
+         * Print each config entry for the topics.
          *
          * @param describeAll If describe all configs.
-         * @return A list with all config entries.
          */
-        public List<ConfigEntry> getDescribeBrokerLoggerConfig(boolean describeAll) {
-            return toJavaList(configs.getDescribeBrokerLoggerConfig(scalaOption(null), describeAll));
+        public void describeTopicConfig(boolean describeAll) {
+            configs.describeTopicConfig(scalaOption(null), describeAll);
         }
 
         /**
@@ -479,20 +621,35 @@ public class KAdmin {
          *
          * @param name        Topic to describe.
          * @param describeAll If describe all configs.
-         * @return A list with all config entries.
          */
         public void describeTopicConfig(String name, boolean describeAll) {
             configs.describeTopicConfig(scalaOption(name), describeAll);
         }
 
         /**
-         * Print each config entry for the topics.
+         * Print each config entry for the brokers.
+         *
+         */
+        public void describeBrokerConfig() {
+            describeBrokerConfig(true);
+        }
+
+        /**
+         * Print each config entry for the broker.
+         *
+         * @param brokerId    Broker id to describe.
+         */
+        public void describeBrokerConfig(int brokerId) {
+            describeBrokerConfig(brokerId, true);
+        }
+
+        /**
+         * Print each config entry for the brokers.
          *
          * @param describeAll If describe all configs.
-         * @return A list with all config entries.
          */
-        public void describeTopicConfig(boolean describeAll) {
-            configs.describeTopicConfig(scalaOption(null), describeAll);
+        public void describeBrokerConfig(boolean describeAll) {
+            configs.describeBrokerConfig(scalaOption(null), describeAll);
         }
 
         /**
@@ -500,19 +657,34 @@ public class KAdmin {
          *
          * @param brokerId    Broker id to describe.
          * @param describeAll If describe all configs.
-         * @return A list with all config entries.
          */
         public void describeBrokerConfig(int brokerId, boolean describeAll) {
             configs.describeBrokerConfig(scalaOption(brokerId), describeAll);
         }
 
         /**
-         * Print each config entry for the brokers.
+         * Print each config entry for the brokers logger.
+         *
+         */
+        public void describeBrokerLoggerConfig() {
+            describeBrokerLoggerConfig(true);
+        }
+
+        /**
+         * Print each config entry for the broker logger.
+         *
+         * @param brokerId    Broker id to describe.
+         */
+        public void describeBrokerLoggerConfig(int brokerId) {
+            describeBrokerLoggerConfig(brokerId, true);
+        }
+
+        /**
+         * Print each config entry for the brokers logger.
          *
          * @param describeAll If describe all configs.
-         * @return A list with all config entries.
          */
-        public void describeBrokerConfig(boolean describeAll) {
+        public void describeBrokerLoggerConfig(boolean describeAll) {
             configs.describeBrokerConfig(scalaOption(null), describeAll);
         }
 
@@ -521,20 +693,9 @@ public class KAdmin {
          *
          * @param brokerId    Broker id to describe.
          * @param describeAll If describe all configs.
-         * @return A list with all config entries.
          */
         public void describeBrokerLoggerConfig(int brokerId, boolean describeAll) {
             configs.describeBrokerConfig(scalaOption(brokerId), describeAll);
-        }
-
-        /**
-         * Print each config entry for the brokers logger.
-         *
-         * @param describeAll If describe all configs.
-         * @return A list with all config entries.
-         */
-        public void describeBrokerLoggerConfig(boolean describeAll) {
-            configs.describeBrokerConfig(scalaOption(null), describeAll);
         }
 
     }
@@ -694,7 +855,25 @@ public class KAdmin {
          * Print ACLs in the Kafka cluster.
          */
         public void listAcls() {
-            listAcls(AclBindingFilter.ANY, new DescribeAclsOptions());
+            listAcls(Collections.emptyList());
+        }
+
+        /**
+         * Print ACLs in the Kafka cluster.
+         *
+         * @param principals Principals associated with each ACL. If empty, the list will not be grouped.
+         */
+        public void listAcls(List<KafkaPrincipal> principals) {
+            listAcls(AclBindingFilter.ANY, principals);
+        }
+
+        /**
+         * Print ACLs in the Kafka cluster.
+         *
+         * @param filter  An optional filter which can match AclBinding objects.
+         */
+        public void listAcls(AclBindingFilter filter) {
+            listAcls(filter, new DescribeAclsOptions());
         }
 
         /**
