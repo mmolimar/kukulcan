@@ -43,7 +43,10 @@ lazy val settings = new {
       "io.github.embeddedkafka" %% "embedded-kafka-schema-registry" % confluentVersion % Test excludeAll exclusions,
       "io.confluent.ksql" % "ksqldb-rest-app" % confluentVersion % Test excludeAll exclusions
     )
-    val repl = Seq.empty
+    val repl = Seq(
+      "org.scalatest" %% "scalatest-wordspec" % scalaTestVersion % Test,
+      "org.scalatest" %% "scalatest-shouldmatchers" % scalaTestVersion % Test
+    )
     val root = Seq.empty
   }
   val common = Seq(
@@ -125,6 +128,7 @@ lazy val root = project
   .dependsOn(apiProject, replProject)
   .enablePlugins(PackPlugin)
   .enablePlugins(KukulcanPackPlugin)
+  .enablePlugins(JacocoPlugin)
   .settings(
     settings.common,
     settings.root
