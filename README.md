@@ -1,10 +1,11 @@
-# kukulcan
+# kukulcan [![Build Status](https://circleci.com/gh/mmolimar/kukulcan.svg?style=shield)](https://circleci.com/gh/mmolimar/kukulcan)
 
-*K'uk'ulkan* ("Feathered Serpent") is the name of a deity which was workshipped by the Yucatec maya people. You can
+*K'uk'ulkan* ("Feathered Serpent") is the name of a deity which was worshipped by the Yucatec maya people. You can
 read a lot more in books or on the Internet about it and will see that, in someways, is related to the wind and water.
 
-Besides the origin of this name I reused to name this project, Kukulcan provides an API and different
-sort of [REPLs](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) to interact with your streams or administer your [Apache Kafka](https://kafka.apache.org) deployment.
+Beyond the origin of this name I reused to name this project, Kukulcan provides an API and different
+sort of [REPLs](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) to interact with your streams 
+or administer your [Apache Kafka](https://kafka.apache.org) deployment.
 
 It supports POSIX and Windows OS and Scala, Java and Python programming languages.
 
@@ -39,7 +40,7 @@ Just clone the ``kukulcan`` repo and *"kukulcan-it"*:
 ### Configuration
 
 In the ``config`` directory, you'll find some files with the configurations for each of the APIs Kukulcan provides.
-All of the possible configs for each API are in these files with their description so, if you need to set some
+All the possible configs for each API are in these files with their description so, if you need to set some
 specific configs for your environment, you should set them there before starting.
 
 Also, there is an important environment variable named **``KUKULCAN_HOME``**. If not set, its default value will be
@@ -61,6 +62,7 @@ functionalities. This API contains:
 * **KConsumer** and **KProducer**: Kafka consumer/producer with some extra features.
 * **KStreams**: extends Kafka Streams to see how your topology is (printing it in a graph).
 * **KSchemaRegistry**: to interact with Confluent Schema Registry.
+* **KKsql**: client for querying KSQL server and integrated with the KSQL-CLI.
 
 ### kukulcan-repl
 
@@ -68,7 +70,7 @@ Enables two sort of entry points for the REPLs: one based on the [Scala REPL](ht
 and the other based on [JShell](https://docs.oracle.com/javase/9/jshell).
 
 Additionally, it includes the logic to read and ``reload`` your configurations stored the ``config`` directory
-in a transparent way.
+transparently.
 
 ### pykukulcan
 
@@ -101,7 +103,7 @@ have to start typing ``kukulcan.<option>.`` or ``Kukulcan.<option>.`` respective
 [Ammonite](https://ammonite.io) is an improved Scala REPL with a lot of interesting features you can find very
 useful to load scripts or even code in an easier way. Obviously, you must install it previously.
 
-It already includes all dependencies and the Kukulcan Scala API to interact with Kafka.
+It already includes all dependencies, and the Kukulcan Scala API to interact with Kafka.
 
 > **NOTE**: If you're going to use Kukulcan with Ammonite, you'll have to publish the project in local, executing
   ``sbt publishLocal``.
@@ -156,7 +158,6 @@ For Windows OS:
 
 - [ ] Tools in the Admin API.
 - [ ] Integration with REST Proxy.
-- [ ] Integration with ksqlDB.
 - [ ] API for Python.
 
 ## Contribute
