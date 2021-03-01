@@ -18,7 +18,10 @@ jobs:
             - v1-dependencies-
       - run:
           name: Compile and test
-          command: sbt clean test
+          command: sbt clean compile test
+      - run:
+          name: Code coverage
+          command: sbt jacocoAggregate jacocoAggregateReport
       - run:
           name: Build and publish
           command: sbt kukulcan publishLocal

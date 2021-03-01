@@ -24,8 +24,8 @@ class KAdminMetricsSpec extends KukulcanApiTestHarness with EmbeddedKafka {
     scalaApi.servers shouldBe s"localhost:${config.kafkaPort}"
     scalaApi.client.isInstanceOf[KafkaAdminClient] shouldBe true
 
-    val numMetrics = scalaApi.metrics.getMetrics.size
-    scalaApi.metrics.getMetrics(".*", ".*").size shouldBe numMetrics
+    scalaApi.metrics.getMetrics.size shouldNot be(0)
+    scalaApi.metrics.getMetrics(".*", ".*").size shouldNot be(0)
     scalaApi.metrics.getMetrics("app-info", "version").head._2.metricValue() shouldBe "2.7.0"
 
     scalaApi.metrics.listMetrics()
@@ -44,8 +44,8 @@ class KAdminMetricsSpec extends KukulcanApiTestHarness with EmbeddedKafka {
     javaApi.servers shouldBe s"localhost:${config.kafkaPort}"
     javaApi.client.isInstanceOf[KafkaAdminClient] shouldBe true
 
-    val numMetrics = javaApi.metrics.getMetrics.size
-    javaApi.metrics.getMetrics(".*", ".*").size shouldBe numMetrics
+    javaApi.metrics.getMetrics.size shouldNot be(0)
+    javaApi.metrics.getMetrics(".*", ".*").size  shouldNot be(0)
     javaApi.metrics.getMetrics("app-info", "version").asScala.head._2.metricValue() shouldBe "2.7.0"
 
     javaApi.metrics.listMetrics()

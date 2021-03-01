@@ -16,7 +16,7 @@ lazy val settings = new {
     val kafkaVersion = "2.7.0"
     val kafkaConnectClientVersion = "3.1.0"
 
-    val scalaTestVersion = "3.2.3"
+    val scalaTestVersion = "3.2.5"
 
     val exclusions = ExclusionRule(organization = "org.apache.kafka")
     val api = Seq(
@@ -73,12 +73,18 @@ lazy val settings = new {
     packExpandedClasspath := true,
     packGenerateMakefile := false,
     publish / skip := true,
-    libraryDependencies ++= dependencies.root
+    libraryDependencies ++= dependencies.root,
+    jacocoAggregateReportSettings := JacocoReportSettings(
+      title = "Kukulcan Project Code Coverage"
+    )
   )
   val api = Seq(
     name := "kukulcan-api",
     libraryDependencies ++= dependencies.api,
-    parallelExecution in Test := false
+    parallelExecution in Test := false,
+    jacocoAggregateReportSettings := JacocoReportSettings(
+      title = "Kukulcan API Module Code Coverage"
+    )
   )
   val repl = Seq(
     name := "kukulcan-repl",
@@ -98,7 +104,10 @@ lazy val settings = new {
     javacOptions ++= Seq(
       "--add-exports=jdk.jshell/jdk.internal.jshell.tool=ALL-UNNAMED"
     ),
-    libraryDependencies ++= dependencies.repl
+    libraryDependencies ++= dependencies.repl,
+    jacocoAggregateReportSettings := JacocoReportSettings(
+      title = "Kukulcan REPL Module Code Coverage"
+    )
   )
   val pykukulcan = Seq(
     name := "pykukulcan"
