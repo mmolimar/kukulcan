@@ -57,12 +57,12 @@ package object kukulcan {
   def schemaRegistry: KSchemaRegistry = KSchemaRegistryApi.inst
 
   /**
-   * Create a KKsql instance reading the {@code ksqldb.properties} file.
+   * Create a KKsql instance reading the {@code ksql.properties} file.
    * If the instance was already created, it will be reused.
    *
    * @return The KKsql instance initialized.
    */
-  def ksqldb: KKsql = KKsqlApi.inst
+  def ksql: KKsql = KKsqlApi.inst
 
   /**
    * Re-create all instances using their properties files.
@@ -105,7 +105,7 @@ package object kukulcan {
     override protected def createInstance(props: Properties): KSchemaRegistry = KSchemaRegistry(props)
   }
 
-  private[kukulcan] object KKsqlApi extends KApi[KKsql]("ksqldb") {
+  private[kukulcan] object KKsqlApi extends KApi[KKsql]("ksql") {
     override protected def createInstance(props: Properties): KKsql = KKsql(props)
   }
 

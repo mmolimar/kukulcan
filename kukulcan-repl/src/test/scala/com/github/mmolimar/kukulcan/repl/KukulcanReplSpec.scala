@@ -42,7 +42,7 @@ class KukulcanReplSpec extends AnyWordSpecLike with Matchers {
         val streams = {
           kukulcan.streams(topology)
         }
-        val ksql = kukulcan.ksqldb
+        val ksql = kukulcan.ksql
         val schemaRegistry = kukulcan.schemaRegistry
 
         admin shouldBe kukulcan.admin
@@ -50,7 +50,7 @@ class KukulcanReplSpec extends AnyWordSpecLike with Matchers {
         consumer shouldBe kukulcan.consumer
         producer shouldBe kukulcan.producer
         streams shouldNot be(kukulcan.streams(topology))
-        ksql shouldBe kukulcan.ksqldb
+        ksql shouldBe kukulcan.ksql
         schemaRegistry shouldBe kukulcan.schemaRegistry
 
         kukulcan.reload()
@@ -60,7 +60,7 @@ class KukulcanReplSpec extends AnyWordSpecLike with Matchers {
         consumer shouldNot be(kukulcan.consumer)
         producer shouldNot be(kukulcan.producer)
         streams shouldNot be(kukulcan.streams(topology))
-        ksql shouldNot be(kukulcan.ksqldb)
+        ksql shouldNot be(kukulcan.ksql)
         schemaRegistry shouldNot be(kukulcan.schemaRegistry)
       }
     }
@@ -96,7 +96,7 @@ class KukulcanReplSpec extends AnyWordSpecLike with Matchers {
         val streams = {
           Kukulcan.streams(topology)
         }
-        val ksql = Kukulcan.ksqldb
+        val ksql = Kukulcan.ksql
         val schemaRegistry = Kukulcan.schemaRegistry
 
         admin shouldBe Kukulcan.admin
@@ -104,7 +104,7 @@ class KukulcanReplSpec extends AnyWordSpecLike with Matchers {
         consumer shouldBe Kukulcan.consumer
         producer shouldBe Kukulcan.producer
         streams shouldNot be(Kukulcan.streams(topology))
-        ksql shouldBe Kukulcan.ksqldb
+        ksql shouldBe Kukulcan.ksql
         schemaRegistry shouldBe Kukulcan.schemaRegistry
 
         Kukulcan.reload()
@@ -114,7 +114,7 @@ class KukulcanReplSpec extends AnyWordSpecLike with Matchers {
         consumer shouldNot be(Kukulcan.consumer)
         producer shouldNot be(Kukulcan.producer)
         streams shouldNot be(Kukulcan.streams(topology))
-        ksql shouldNot be(Kukulcan.ksqldb)
+        ksql shouldNot be(Kukulcan.ksql)
         schemaRegistry shouldNot be(Kukulcan.schemaRegistry)
       }
     }

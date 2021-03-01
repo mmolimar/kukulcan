@@ -65,14 +65,14 @@ class PyKukulcanRepl:
         """
         return self._gateway.jvm.com.github.mmolimar.kukulcan.java.Kukulcan.schemaRegistry()
 
-    def ksqldb(self):
+    def ksql(self):
         """
-        Create a KKsql instance reading the {@code ksqldb.properties} file.
+        Create a KKsql instance reading the {@code ksql.properties} file.
         If the instance was already created, it will be reused.
 
         :return: The KKsql instance initialized.
         """
-        return self._gateway.jvm.com.github.mmolimar.kukulcan.java.Kukulcan.ksqldb()
+        return self._gateway.jvm.com.github.mmolimar.kukulcan.java.Kukulcan.ksql()
 
     def reload(self):
         """

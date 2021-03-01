@@ -51,7 +51,7 @@ public class Kukulcan {
         }
     };
 
-    private static KApi<KKsql> kksqlApi = new KApi<>("ksqldb") {
+    private static KApi<KKsql> kksqlApi = new KApi<>("ksql") {
         @Override
         public KKsql createInstance(Properties props) {
             return new KKsql(props);
@@ -122,12 +122,12 @@ public class Kukulcan {
     }
 
     /**
-     * Create a KKsql instance reading the {@code ksqldb.properties} file.
+     * Create a KKsql instance reading the {@code ksql.properties} file.
      * If the instance was already created, it will be reused.
      *
      * @return The KKsql instance initialized.
      */
-    public static KKsql ksqldb() {
+    public static KKsql ksql() {
         return kksqlApi.inst();
     }
 
