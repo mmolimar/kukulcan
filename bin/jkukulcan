@@ -14,6 +14,6 @@ done
 
 eval exec "\"$JAVA_EXEC\"" ${KUKULCAN_OPTS} -cp "\"${KUKULCAN_CLASSPATH}\"" \
   com.github.mmolimar.kukulcan.repl.JKukulcanRepl \
-  --class-path "\"$(find "$(echo $KUKULCAN_CLASSPATH  | sed 's/\/\*//g')" | tr '\n' ':')\""
+  --class-path "\"$(find "$(echo "$KUKULCAN_CLASSPATH"  | sed 's/\/\*//g')" | tr '\n' ':')\""
 
 exit $?
