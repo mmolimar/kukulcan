@@ -38,21 +38,22 @@ class KKsqlSpec extends KukulcanApiTestHarness with EmbeddedKafka {
       scalaApi.setProperty("ksql.streams.auto.offset.reset", "earliest") shouldBe None.orNull
       scalaApi.unsetProperty("ksql.streams.auto.offset.reset").toString shouldBe "earliest"
 
-      val ksqlCreate = "CREATE TABLE TEST (ID VARCHAR PRIMARY KEY) WITH (KAFKA_TOPIC = 'test', VALUE_FORMAT = 'DELIMITED');"
-      val createResult = scalaApi.makeKsqlRequest(ksqlCreate, -1L)
+      val ksqlCreate = "CREATE TABLE TEST (ID VARCHAR PRIMARY KEY, FIELD1 VARCHAR) WITH (KAFKA_TOPIC = 'test', VALUE_FORMAT = 'DELIMITED');"
+      val createResult = scalaApi.makeKsqlRequest(ksqlCreate)
       scalaApi.getStatus(createResult.get(0).asInstanceOf[CommandStatusEntity].getCommandId.toString).getStatus shouldBe
         CommandStatus.Status.SUCCESS
 
-      val ksqlInsert = "INSERT INTO TEST (ID) VALUES ('test');"
+      val ksqlInsert = "INSERT INTO TEST (ID, FIELD1) VALUES ('test', 'value');"
       scalaApi.makeKsqlRequest(ksqlInsert).size() shouldBe 0
       scalaApi.getAllStatuses.size() shouldBe 1
 
-      val ksqlQuery = "SELECT * FROM TEST EMIT CHANGES LIMIT 0;"
-      scalaApi.makeQueryRequest(ksqlQuery, -1L).size shouldBe 2
-      scalaApi.makeQueryRequestStreamed(ksqlQuery, -1L) shouldNot be(None.orNull)
+      val ksqlQuery = "SELECT * FROM TEST EMIT CHANGES LIMIT 1;"
+      scalaApi.makeQueryRequest(ksqlQuery).size shouldBe 3
+      scalaApi.makeQueryRequestStreamed(ksqlQuery) shouldNot be(None.orNull)
 
-      val ksqlPrint = "PRINT test;"
-      scalaApi.makePrintTopicRequest(ksqlPrint, -1L) shouldNot be(None.orNull)
+      val ksqlPrint = "PRINT test FROM BEGINNING INTERVAL 1 LIMIT 1;"
+      scalaApi.makePrintTopicRequestStreamed(ksqlPrint) shouldNot be(None.orNull)
+      scalaApi.makePrintTopicRequest(ksqlPrint).size shouldBe 3
 
       assertThrows[KsqlException] {
         scalaApi.makeHeartbeatRequest
@@ -81,22 +82,23 @@ class KKsqlSpec extends KukulcanApiTestHarness with EmbeddedKafka {
       javaApi.setProperty("ksql.streams.auto.offset.reset", "earliest") shouldBe None.orNull
       javaApi.unsetProperty("ksql.streams.auto.offset.reset").toString shouldBe "earliest"
 
-      val ksqlCreate = "CREATE TABLE TEST (ID VARCHAR PRIMARY KEY) WITH (KAFKA_TOPIC = 'test', VALUE_FORMAT = 'DELIMITED');"
+      val ksqlCreate = "CREATE TABLE TEST (ID VARCHAR PRIMARY KEY, FIELD1 VARCHAR) WITH (KAFKA_TOPIC = 'test', VALUE_FORMAT = 'DELIMITED');"
       val createResult = javaApi.makeKsqlRequest(ksqlCreate, -1L)
       javaApi.getStatus(createResult.get(0).asInstanceOf[CommandStatusEntity].getCommandId.toString).getStatus shouldBe
         CommandStatus.Status.SUCCESS
 
-      val ksqlInsert = "INSERT INTO TEST (ID) VALUES ('test');"
+      val ksqlInsert = "INSERT INTO TEST (ID, FIELD1) VALUES ('test', 'value');"
       javaApi.makeKsqlRequest(ksqlInsert).size() shouldBe 0
       javaApi.getAllStatuses.size() shouldBe 1
 
-      val ksqlQuery = "SELECT * FROM TEST EMIT CHANGES LIMIT 0;"
-      javaApi.makeQueryRequest(ksqlQuery, -1L).size shouldBe 2
-      javaApi.makeQueryRequest(ksqlQuery, -1L, Collections.emptyMap(), Collections.emptyMap()).size shouldBe 2
-      javaApi.makeQueryRequestStreamed(ksqlQuery, -1L) shouldNot be(None.orNull)
+      val ksqlQuery = "SELECT * FROM TEST EMIT CHANGES LIMIT 1;"
+      javaApi.makeQueryRequest(ksqlQuery).size shouldBe 3
+      javaApi.makeQueryRequest(ksqlQuery, Collections.emptyMap(), Collections.emptyMap()).size shouldBe 3
+      javaApi.makeQueryRequestStreamed(ksqlQuery) shouldNot be(None.orNull)
 
-      val ksqlPrint = "PRINT test;"
-      javaApi.makePrintTopicRequest(ksqlPrint, -1L) shouldNot be(None.orNull)
+      val ksqlPrint = "PRINT test FROM BEGINNING INTERVAL 1 LIMIT 1;"
+      javaApi.makePrintTopicRequestStreamed(ksqlPrint) shouldNot be(None.orNull)
+      javaApi.makePrintTopicRequest(ksqlPrint).size shouldBe 3
 
       assertThrows[KsqlException] {
         javaApi.makeHeartbeatRequest

@@ -11,6 +11,7 @@ import java.util.Properties;
 
 import static com.github.mmolimar.kukulcan.java.KUtils.toJavaList;
 import static com.github.mmolimar.kukulcan.java.KUtils.toScalaMap;
+import static com.github.mmolimar.kukulcan.java.KUtils.scalaOption;
 
 /**
  * An enriched implementation of the {@code io.confluent.ksql.rest.client.KsqlRestClient} class to execute
@@ -126,8 +127,18 @@ public class KKsql {
      * @param commandSeqNum The previous command sequence number.
      * @return a list of {@code KsqlEntity} with the result.
      */
-    public KsqlEntityList makeKsqlRequest(String ksql, long commandSeqNum) {
+    public KsqlEntityList makeKsqlRequest(String ksql, Long commandSeqNum) {
         return kksql.makeKsqlRequest(ksql, commandSeqNum);
+    }
+
+    /**
+     * Make a query into KSQL.
+     *
+     * @param ksql The query to request.
+     * @return a {@code Seq[StreamedRow]} with the result.
+     */
+    public List<StreamedRow> makeQueryRequest(String ksql) {
+        return makeQueryRequest(ksql, null);
     }
 
     /**
@@ -137,8 +148,26 @@ public class KKsql {
      * @param commandSeqNum The previous command sequence number.
      * @return a {@code Seq[StreamedRow]} with the result.
      */
-    public List<StreamedRow> makeQueryRequest(String ksql, long commandSeqNum) {
-        return toJavaList(kksql.makeQueryRequest(ksql, commandSeqNum, toScalaMap(Collections.emptyMap()), toScalaMap(Collections.emptyMap())));
+    public List<StreamedRow> makeQueryRequest(String ksql, Long commandSeqNum) {
+        return toJavaList(
+                kksql.makeQueryRequest(
+                        ksql,
+                        scalaOption(commandSeqNum),
+                        toScalaMap(Collections.emptyMap()),
+                        toScalaMap(Collections.emptyMap())
+                )
+        );
+    }
+
+    /**
+     * Make a query into KSQL.
+     *
+     * @param ksql       The query to request.
+     * @param properties Custom properties to send to KSQL.
+     * @return a {@code Seq[StreamedRow]} with the result.
+     */
+    public List<StreamedRow> makeQueryRequest(String ksql, Map<String, Object> properties, Map<String, Object> request) {
+        return makeQueryRequest(ksql, null, properties, request);
     }
 
     /**
@@ -149,11 +178,21 @@ public class KKsql {
      * @param properties    Custom properties to send to KSQL.
      * @return a {@code Seq[StreamedRow]} with the result.
      */
-    public List<StreamedRow> makeQueryRequest(String ksql, long commandSeqNum,
+    public List<StreamedRow> makeQueryRequest(String ksql, Long commandSeqNum,
                                               Map<String, Object> properties, Map<String, Object> request) {
         return toJavaList(
-                kksql.makeQueryRequest(ksql, commandSeqNum, toScalaMap(properties), toScalaMap(request))
+                kksql.makeQueryRequest(ksql, scalaOption(commandSeqNum), toScalaMap(properties), toScalaMap(request))
         );
+    }
+
+    /**
+     * Make a streamed query to KSQL.
+     *
+     * @param ksql The query to request.
+     * @return a {@code StreamPublisher[StreamedRow]} with the result.
+     */
+    public StreamPublisher<StreamedRow> makeQueryRequestStreamed(String ksql) {
+        return makeQueryRequestStreamed(ksql, null);
     }
 
     /**
@@ -163,8 +202,39 @@ public class KKsql {
      * @param commandSeqNum The previous command sequence number.
      * @return a {@code StreamPublisher[StreamedRow]} with the result.
      */
-    public StreamPublisher<StreamedRow> makeQueryRequestStreamed(String ksql, long commandSeqNum) {
-        return kksql.makeQueryRequestStreamed(ksql, commandSeqNum);
+    public StreamPublisher<StreamedRow> makeQueryRequestStreamed(String ksql, Long commandSeqNum) {
+        return kksql.makeQueryRequestStreamed(ksql, scalaOption(commandSeqNum));
+    }
+
+    /**
+     * Make a print topic request to KSQL.
+     *
+     * @param ksql The query to request.
+     * @return a {@code List[String]} with the result.
+     */
+    public List<String> makePrintTopicRequest(String ksql) {
+        return makePrintTopicRequest(ksql, null);
+    }
+
+    /**
+     * Make a print topic request to KSQL.
+     *
+     * @param ksql          The query to request.
+     * @param commandSeqNum The previous command sequence number.
+     * @return a {@code List[String]} with the result.
+     */
+    public List<String> makePrintTopicRequest(String ksql, Long commandSeqNum) {
+        return toJavaList(kksql.makePrintTopicRequest(ksql, scalaOption(commandSeqNum)));
+    }
+
+    /**
+     * Make a print topic request to KSQL.
+     *
+     * @param ksql          The query to request.
+     * @return a {@code StreamPublisher[StreamedRow]} with the result.
+     */
+    public StreamPublisher<String> makePrintTopicRequestStreamed(String ksql) {
+        return makePrintTopicRequestStreamed(ksql, null);
     }
 
     /**
@@ -174,8 +244,8 @@ public class KKsql {
      * @param commandSeqNum The previous command sequence number.
      * @return a {@code StreamPublisher[StreamedRow]} with the result.
      */
-    public StreamPublisher<String> makePrintTopicRequest(String ksql, long commandSeqNum) {
-        return kksql.makePrintTopicRequest(ksql, commandSeqNum);
+    public StreamPublisher<String> makePrintTopicRequestStreamed(String ksql, Long commandSeqNum) {
+        return kksql.makePrintTopicRequestStreamed(ksql, scalaOption(commandSeqNum));
     }
 
     /**

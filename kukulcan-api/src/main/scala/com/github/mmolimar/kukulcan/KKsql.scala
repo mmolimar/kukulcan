@@ -1,15 +1,17 @@
 package com.github.mmolimar.kukulcan
 
 import _root_.java.net.URI
-import _root_.java.util.concurrent.TimeUnit
+import _root_.java.util.concurrent.{TimeUnit, CompletableFuture}
 import _root_.java.util.{Optional, Properties}
-
 import io.confluent.ksql.cli.Cli
 import io.confluent.ksql.cli.console.OutputFormat
 import io.confluent.ksql.properties.PropertiesUtil
+import io.confluent.ksql.reactive.BaseSubscriber
 import io.confluent.ksql.rest.client.{BasicCredentials, KsqlRestClient, RestResponse, StreamPublisher}
 import io.confluent.ksql.rest.entity.{KsqlEntityList, StreamedRow, _}
 import io.confluent.ksql.util.KsqlException
+import io.vertx.core.Context
+import org.reactivestreams.Subscription
 
 import scala.collection.JavaConverters._
 
@@ -145,40 +147,60 @@ class KKsql(val props: Properties) {
    * Make a query into KSQL.
    *
    * @param ksql          The query to request.
-   * @param commandSeqNum The previous command sequence number.
+   * @param commandSeqNum The previous command sequence number (optional).
    * @param properties    Custom properties to send to KSQL. Default empty.
    * @param request       Request properties to send to KSQL. Default empty.
    * @return a {@code Seq[StreamedRow]} with the result.
    */
   def makeQueryRequest(
                         ksql: String,
-                        commandSeqNum: Long,
+                        commandSeqNum: Option[Long] = None,
                         properties: Map[String, AnyRef] = Map.empty,
                         request: Map[String, AnyRef] = Map.empty,
                       ): Seq[StreamedRow] = {
-    manageResponse(client.makeQueryRequest(ksql, commandSeqNum, properties.asJava, request.asJava)).asScala
+    manageResponse(
+      client.makeQueryRequest(ksql, commandSeqNum.getOrElse(None.orNull).asInstanceOf[Long], properties.asJava, request.asJava)
+    ).asScala
   }
 
   /**
    * Make a streamed query to KSQL.
    *
    * @param ksql          The query to request.
-   * @param commandSeqNum The previous command sequence number.
+   * @param commandSeqNum The previous command sequence number (optional).
    * @return a {@code StreamPublisher[StreamedRow]} with the result.
    */
-  def makeQueryRequestStreamed(ksql: String, commandSeqNum: Long): StreamPublisher[StreamedRow] = {
-    client.makeQueryRequestStreamed(ksql, commandSeqNum)
+  def makeQueryRequestStreamed(ksql: String, commandSeqNum: Option[Long] = None): StreamPublisher[StreamedRow] = {
+    client.makeQueryRequestStreamed(ksql, commandSeqNum.getOrElse(None.orNull).asInstanceOf[Long])
   }
 
   /**
    * Make a print topic request to KSQL.
    *
    * @param ksql          The query to request.
-   * @param commandSeqNum The previous command sequence number.
+   * @param commandSeqNum The previous command sequence number (optional).
+   * @return a {@code Seq[String]} with the result.
+   */
+  def makePrintTopicRequest(ksql: String, commandSeqNum: Option[Long] = None): Seq[String] = {
+    val publisher = makePrintTopicRequestStreamed(ksql, commandSeqNum)
+    val future = new CompletableFuture[String]()
+    val subscriber = new PrintTopicSubscriber(publisher.getContext, future)
+    publisher.subscribe(subscriber)
+    future.get()
+    future.complete(null)
+    publisher.close()
+    subscriber.result()
+  }
+
+  /**
+   * Make a print topic request to KSQL.
+   *
+   * @param ksql          The query to request.
+   * @param commandSeqNum The previous command sequence number (optional).
    * @return a {@code StreamPublisher[StreamedRow]} with the result.
    */
-  def makePrintTopicRequest(ksql: String, commandSeqNum: Long): StreamPublisher[String] = {
-    client.makePrintTopicRequest(ksql, commandSeqNum)
+  def makePrintTopicRequestStreamed(ksql: String, commandSeqNum: Option[Long] = None): StreamPublisher[String] = {
+    client.makePrintTopicRequest(ksql, commandSeqNum.getOrElse(None.orNull).asInstanceOf[Long])
   }
 
   /**
@@ -217,6 +239,30 @@ class KKsql(val props: Properties) {
         s"Error code[${error.getErrorCode}]. Error message: ${error.getMessage}")
     }
     response.getResponse
+  }
+
+  private class PrintTopicSubscriber (context: Context, future: CompletableFuture[String])
+    extends BaseSubscriber[String](context) {
+
+    private val lines = scala.collection.mutable.ListBuffer[String]()
+
+    override protected def afterSubscribe(subscription: Subscription): Unit = {
+      makeRequest(1)
+    }
+
+    override protected def handleValue(line: String): Unit = {
+        lines += line
+        makeRequest(1)
+    }
+
+    override protected def handleComplete(): Unit = future.complete(null)
+
+    override protected def handleError(t: Throwable): Unit = future.completeExceptionally(t)
+
+    def result(): Seq[String] = {
+      context.runOnContext((_: Void) => cancel())
+      lines
+    }
   }
 
 }
