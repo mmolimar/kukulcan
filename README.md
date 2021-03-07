@@ -26,7 +26,7 @@ of its rich API plus some additional utils included and make your interaction be
 ### Requirements
 
 Before starting, you'll need to have installed JDK 11 and [SBT](https://www.scala-sbt.org/). Additionally,
-if you want to use the PyKukulcan REPL, you'll also need Python (supported 2.7, 3.4, 3.5, 3.6, 3.7 and 3.8 versions)
+if you want to use the PyKukulcan REPL, you'll also need Python (tested 2.7, 3.4, 3.5, 3.6, and 3.7 versions)
 and [pip](https://pypi.org/project/pip) installed.
 
 ### Building from source
@@ -58,11 +58,11 @@ Contains all the Scala and Java classes to interact with Kafka and extending the
 functionalities. This API contains:
 
 * **KAdmin**: grouped utils for administrative operations for topics, configs, ACLs and metrics.
-* **KConnect**: methods to execute requests against Kafka Connect.
+* **KConnect**: methods to execute requests against Kafka Connect REST API.
 * **KConsumer** and **KProducer**: Kafka consumer/producer with some extra features.
 * **KStreams**: extends Kafka Streams to see how your topology is (printing it in a graph).
-* **KSchemaRegistry**: to interact with Confluent Schema Registry.
-* **KKsql**: client for querying KSQL server and integrated with the KSQL-CLI.
+* **KSchemaRegistry**: to interact and manage schemas in [Confluent Schema Registry](https://github.com/confluentinc/schema-registry).
+* **KKsql**: client for querying [Confluent KSQL](https://github.com/confluentinc/ksql) server and integrated with the KSQL-CLI.
 
 ### kukulcan-repl
 
@@ -92,6 +92,14 @@ you can do with Kukulcan:
 - Kafka Connect interaction:
 
   ![](/docs/img/kconnect.png)
+
+- Managing schemas in Schema Registry:
+
+  ![](/docs/img/kschema-registry.png)
+
+- Interacting with KSQL server and using the KSQL-CLI:
+
+  ![](/docs/img/kksql.png)
 
 > **NOTE**: The REPLs have already the Kukulcan imports: ``com.github.mmolimar.kukulcan`` in case of the
 Scala and Ammonite REPLs and ``com.github.mmolimar.kukulcan.Kukulcan`` in case of the JShell REPL. So you just
@@ -141,7 +149,7 @@ For Windows OS:
 
 ### PyKukulcan REPL
 
-A Python shell including the needed bindings with Kukulcan Scala API via [Py4J](https://www.py4j.or).
+A Python shell including the needed bindings with Kukulcan Scala API via [Py4J](https://www.py4j.org).
 
 > **NOTE**: If you're going to use the PyKukulcan REPL, you must have Python and pip installed. Then, install
 ``pykukulcan`` in this way: ``pip install python/ -r python/requirements.txt``
@@ -154,9 +162,9 @@ For Windows OS:
 
 ``bin\pykukulcan.cmd``
 
-## TODO's
+## TODOs
 
-- [ ] Tools in the Admin API.
+- [ ] Tools in the KAdmin API.
 - [ ] Integration with REST Proxy.
 - [ ] API for Python.
 
