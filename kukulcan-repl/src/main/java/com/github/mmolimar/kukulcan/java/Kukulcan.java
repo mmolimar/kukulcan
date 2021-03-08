@@ -1,5 +1,6 @@
 package com.github.mmolimar.kukulcan.java;
 
+import com.github.mmolimar.kukulcan.KKsql;
 import com.github.mmolimar.kukulcan.repl.KApi;
 import org.apache.kafka.streams.Topology;
 
@@ -36,10 +37,24 @@ public class Kukulcan {
         }
     };
 
-    private static KApi<Function<Topology, KStreams>> kStreamsApi = new KApi<>("streams") {
+    private static KApi<Function<Topology, KStreams>> kstreamsApi = new KApi<>("streams") {
         @Override
         public Function<Topology, KStreams> createInstance(Properties props) {
             return (topology -> new KStreams(topology, props));
+        }
+    };
+
+    private static KApi<KSchemaRegistry> kschemaRegistryApi = new KApi<>("schema-registry") {
+        @Override
+        public KSchemaRegistry createInstance(Properties props) {
+            return new KSchemaRegistry(props);
+        }
+    };
+
+    private static KApi<KKsql> kksqlApi = new KApi<>("ksql") {
+        @Override
+        public KKsql createInstance(Properties props) {
+            return new KKsql(props);
         }
     };
 
@@ -93,7 +108,27 @@ public class Kukulcan {
      * @return The KStreams instance initialized.
      */
     public static KStreams streams(Topology topology) {
-        return kStreamsApi.inst().apply(topology);
+        return kstreamsApi.inst().apply(topology);
+    }
+
+    /**
+     * Create a KSchemaRegistry instance reading the {@code schema-registry.properties} file.
+     * If the instance was already created, it will be reused.
+     *
+     * @return The KSchemaRegistry instance initialized.
+     */
+    public static KSchemaRegistry schemaRegistry() {
+        return kschemaRegistryApi.inst();
+    }
+
+    /**
+     * Create a KKsql instance reading the {@code ksql.properties} file.
+     * If the instance was already created, it will be reused.
+     *
+     * @return The KKsql instance initialized.
+     */
+    public static KKsql ksql() {
+        return kksqlApi.inst();
     }
 
     /**
@@ -105,7 +140,9 @@ public class Kukulcan {
         kconsumerApi.reload();
         kproducerApi.reload();
         kconnectApi.reload();
-        kStreamsApi.reload();
+        kstreamsApi.reload();
+        kschemaRegistryApi.reload();
+        kksqlApi.reload();
         System.out.println("Done!");
     }
 }

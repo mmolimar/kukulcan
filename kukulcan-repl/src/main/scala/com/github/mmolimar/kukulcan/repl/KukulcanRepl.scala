@@ -1,6 +1,6 @@
 package com.github.mmolimar.kukulcan.repl
 
-import scala.tools.nsc.GenericRunnerSettings
+import scala.tools.nsc.{GenericRunnerSettings, Settings}
 import scala.tools.nsc.interpreter.ILoop
 
 /**
@@ -11,14 +11,18 @@ object KukulcanRepl extends App {
 
   def printBanner(): Unit = println(banner)
 
-  val settings = new GenericRunnerSettings(Console.err.println)
-  settings.usejavacp.value = true
-  settings.processArguments(args.toList, processAll = true)
+  def buildSettings: Settings = {
+    val settings = new GenericRunnerSettings(Console.err.println)
+    settings.usejavacp.value = true
+    settings.processArguments(Option(args).map(_.toList).getOrElse(List.empty), processAll = true)
 
-  new KukulcanILoop().process(settings)
+    settings
+  }
+
+  new KukulcanILoop().process(buildSettings)
 }
 
-private class KukulcanILoop extends ILoop {
+private[repl] class KukulcanILoop extends ILoop {
 
   private val initCommands =
     """

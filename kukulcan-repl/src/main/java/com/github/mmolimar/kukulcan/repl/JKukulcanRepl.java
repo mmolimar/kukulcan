@@ -12,6 +12,11 @@ import java.util.stream.Stream;
  */
 public class JKukulcanRepl {
 
+    static String[] shellArgs(String[] args) {
+        String[] predefs = {"--feedback", "concise"};
+        return Stream.of(predefs, args).flatMap(Stream::of).toArray(String[]::new);
+    }
+
     public static void main(String[] args) throws Exception {
         Map<String, String> prefs = new HashMap<>();
         prefs.put("STARTUP",
@@ -21,8 +26,6 @@ public class JKukulcanRepl {
         JShellToolBuilder jShellToolBuilder = new JShellToolBuilder();
         jShellToolBuilder.persistence(prefs);
 
-        String[] predefs = {"--feedback", "concise"};
-        String[] jshellArgs = Stream.of(predefs, args).flatMap(Stream::of).toArray(String[]::new);
-        jShellToolBuilder.start(jshellArgs);
+        jShellToolBuilder.start(shellArgs(args));
     }
 }

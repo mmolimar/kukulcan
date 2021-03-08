@@ -56,6 +56,24 @@ class PyKukulcanRepl:
         """
         return self._gateway.jvm.com.github.mmolimar.kukulcan.java.Kukulcan.streams(topology)
 
+    def schema_registry(self):
+        """
+        Create a KSchemaRegistry instance reading the {@code schema-registry.properties} file.
+        If the instance was already created, it will be reused.
+
+        :return: The KSchemaRegistry instance initialized.
+        """
+        return self._gateway.jvm.com.github.mmolimar.kukulcan.java.Kukulcan.schemaRegistry()
+
+    def ksql(self):
+        """
+        Create a KKsql instance reading the {@code ksql.properties} file.
+        If the instance was already created, it will be reused.
+
+        :return: The KKsql instance initialized.
+        """
+        return self._gateway.jvm.com.github.mmolimar.kukulcan.java.Kukulcan.ksql()
+
     def reload(self):
         """
         Re-create all instances using their properties files.

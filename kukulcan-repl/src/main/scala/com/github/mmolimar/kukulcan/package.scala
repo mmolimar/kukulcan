@@ -49,6 +49,22 @@ package object kukulcan {
   def streams(topology: Topology): KStreams = KStreamsApi.inst(topology)
 
   /**
+   * Create a KSchemaRegistry instance reading the {@code schema-registry.properties} file.
+   * If the instance was already created, it will be reused.
+   *
+   * @return The KSchemaRegistry instance initialized.
+   */
+  def schemaRegistry: KSchemaRegistry = KSchemaRegistryApi.inst
+
+  /**
+   * Create a KKsql instance reading the {@code ksql.properties} file.
+   * If the instance was already created, it will be reused.
+   *
+   * @return The KKsql instance initialized.
+   */
+  def ksql: KKsql = KKsqlApi.inst
+
+  /**
    * Re-create all instances using their properties files.
    *
    */
@@ -58,6 +74,8 @@ package object kukulcan {
     KProducerApi.reload()
     KConnectApi.reload()
     KStreamsApi.reload()
+    KSchemaRegistryApi.reload()
+    KKsqlApi.reload()
     println("Done!")
   }
 
@@ -81,6 +99,14 @@ package object kukulcan {
     override protected def createInstance(props: Properties): Topology => KStreams = {
       topology: Topology => KStreams(topology, props)
     }
+  }
+
+  private[kukulcan] object KSchemaRegistryApi extends KApi[KSchemaRegistry]("schema-registry") {
+    override protected def createInstance(props: Properties): KSchemaRegistry = KSchemaRegistry(props)
+  }
+
+  private[kukulcan] object KKsqlApi extends KApi[KKsql]("ksql") {
+    override protected def createInstance(props: Properties): KKsql = KKsql(props)
   }
 
 }

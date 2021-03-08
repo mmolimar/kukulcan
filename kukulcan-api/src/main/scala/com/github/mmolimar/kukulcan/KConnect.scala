@@ -3,7 +3,21 @@ package com.github.mmolimar.kukulcan
 import _root_.java.io.File
 import _root_.java.util.Properties
 
-import org.sourcelab.kafka.connect.apiclient.request.dto.{ConnectServerVersion => JConnectServerVersion, ConnectorDefinition => JConnectorDefinition, ConnectorPlugin => JConnectorPlugin, ConnectorPluginConfigDefinition => JConnectorPluginConfigDefinition, ConnectorPluginConfigValidationResults => JConnectorPluginConfigValidationResults, ConnectorStatus => JConnectorStatus, ConnectorTopics => JConnectorTopics, ConnectorsWithExpandedInfo => JConnectorsWithExpandedInfo, ConnectorsWithExpandedMetadata => JConnectorsWithExpandedMetadata, ConnectorsWithExpandedStatus => JConnectorsWithExpandedStatus, NewConnectorDefinition => JNewConnectorDefinition, Task => JTask, TaskStatus => JTaskStatus}
+import org.sourcelab.kafka.connect.apiclient.request.dto.{
+  ConnectServerVersion => JConnectServerVersion,
+  ConnectorDefinition => JConnectorDefinition,
+  ConnectorPlugin => JConnectorPlugin,
+  ConnectorPluginConfigDefinition => JConnectorPluginConfigDefinition,
+  ConnectorPluginConfigValidationResults => JConnectorPluginConfigValidationResults,
+  ConnectorStatus => JConnectorStatus,
+  ConnectorTopics => JConnectorTopics,
+  ConnectorsWithExpandedInfo => JConnectorsWithExpandedInfo,
+  ConnectorsWithExpandedMetadata => JConnectorsWithExpandedMetadata,
+  ConnectorsWithExpandedStatus => JConnectorsWithExpandedStatus,
+  NewConnectorDefinition => JNewConnectorDefinition,
+  Task => JTask,
+  TaskStatus => JTaskStatus
+}
 import org.sourcelab.kafka.connect.apiclient.{Configuration, KafkaConnectClient}
 
 /**
@@ -89,7 +103,7 @@ class KConnect(val props: Properties) {
    * Add a new connector.
    *
    * @param name   Connector name.
-   * @param config {@code Map} with the connector configurations.
+   * @param config {@code Map[String, String]} with the connector configurations.
    * @return A {@code Connector} with the connector definition.
    */
   def addConnector(name: String, config: Map[String, String]): Connector = {
@@ -108,7 +122,7 @@ class KConnect(val props: Properties) {
    * Get the connector configurations.
    *
    * @param name Connector name.
-   * @return A {@code Map} with the connector configurations.
+   * @return A {@code Map[String, String]} with the connector configurations.
    */
   def connectorConfig(name: String): Map[String, String] = client.getConnectorConfig(name).asScala.toMap
 
@@ -155,13 +169,13 @@ class KConnect(val props: Properties) {
   /**
    * Validate a connector plugin config.
    *
-   * @param name   Connector name.
-   * @param config Configuration values for the connector.
+   * @param pluginName Connector plugin name.
+   * @param config     Configuration values for the connector.
    * @return A {@code ConnectorPluginValidation} with the results of the validation
    */
-  def validateConnectorPluginConfig(name: String, config: Map[String, String]): ConnectorPluginValidation = {
+  def validateConnectorPluginConfig(pluginName: String, config: Map[String, String]): ConnectorPluginValidation = {
     client.validateConnectorPluginConfig(
-      new JConnectorPluginConfigDefinition(name, config.asJava)
+      new JConnectorPluginConfigDefinition(pluginName, config.asJava)
     )
   }
 
@@ -242,14 +256,14 @@ class KConnect(val props: Properties) {
   /**
    * Get all connectors deployed, including the status for each connector.
    *
-   * @return A { @code ConnectorExpandedStatus} with the extended status info.
+   * @return A {@code ConnectorExpandedStatus} with the extended status info.
    */
   def connectorsWithExpandedStatus: ConnectorExpandedStatus = client.getConnectorsWithExpandedStatus
 
   /**
    * Get all connectors deployed, including all metadata available.
    *
-   * @return A { @code ConnectorExpandedMetadata} with all metadata available for each connector.
+   * @return A {@code ConnectorExpandedMetadata} with all metadata available for each connector.
    */
   def connectorsWithAllExpandedMetadata: ConnectorExpandedMetadata = client.getConnectorsWithAllExpandedMetadata
 
@@ -268,13 +282,18 @@ object responses {
   private implicit val connectorPluginEncoder: Encoder[ConnectorPlugin] = deriveEncoder[ConnectorPlugin]
   private implicit val configDefinitionEncoder: Encoder[ConfigDefinition] = deriveEncoder[ConfigDefinition]
   private implicit val configValueEncoder: Encoder[ConfigValue] = deriveEncoder[ConfigValue]
-  private implicit val connectorPluginValidationConfigEncoder: Encoder[ConnectorPluginValidationConfig] = deriveEncoder[ConnectorPluginValidationConfig]
-  private implicit val connectorPluginValidationEncoder: Encoder[ConnectorPluginValidation] = deriveEncoder[ConnectorPluginValidation]
+  private implicit val connectorPluginValidationConfigEncoder: Encoder[ConnectorPluginValidationConfig] =
+    deriveEncoder[ConnectorPluginValidationConfig]
+  private implicit val connectorPluginValidationEncoder: Encoder[ConnectorPluginValidation] =
+    deriveEncoder[ConnectorPluginValidation]
   private implicit val connectorStatusEncoder: Encoder[ConnectorStatus] = deriveEncoder[ConnectorStatus]
   private implicit val connectorTopicsEncoder: Encoder[ConnectorTopics] = deriveEncoder[ConnectorTopics]
-  private implicit val connectorExpandedInfoEncoder: Encoder[ConnectorExpandedInfo] = deriveEncoder[ConnectorExpandedInfo]
-  private implicit val connectorExpandedStatusEncoder: Encoder[ConnectorExpandedStatus] = deriveEncoder[ConnectorExpandedStatus]
-  private implicit val connectorExpandedMetadataEncoder: Encoder[ConnectorExpandedMetadata] = deriveEncoder[ConnectorExpandedMetadata]
+  private implicit val connectorExpandedInfoEncoder: Encoder[ConnectorExpandedInfo] =
+    deriveEncoder[ConnectorExpandedInfo]
+  private implicit val connectorExpandedStatusEncoder: Encoder[ConnectorExpandedStatus] =
+    deriveEncoder[ConnectorExpandedStatus]
+  private implicit val connectorExpandedMetadataEncoder: Encoder[ConnectorExpandedMetadata] =
+    deriveEncoder[ConnectorExpandedMetadata]
   private implicit val taskIdEncoder: Encoder[TaskId] = deriveEncoder[TaskId]
   private implicit val taskEncoder: Encoder[Task] = deriveEncoder[Task]
   private implicit val taskStatusEncoder: Encoder[TaskStatus] = deriveEncoder[TaskStatus]

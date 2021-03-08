@@ -1,10 +1,11 @@
-# kukulcan
+# kukulcan [![Build Status](https://circleci.com/gh/mmolimar/kukulcan.svg?style=shield)](https://circleci.com/gh/mmolimar/kukulcan)
 
-*K'uk'ulkan* ("Feathered Serpent") is the name of a deity which was workshipped by the Yucatec maya people. You can
+*K'uk'ulkan* ("Feathered Serpent") is the name of a deity which was worshipped by the Yucatec maya people. You can
 read a lot more in books or on the Internet about it and will see that, in someways, is related to the wind and water.
 
-Besides the origin of this name I reused to name this project, Kukulcan provides an API and different
-sort of [REPLs](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) to interact with your streams or administer your [Apache Kafka](https://kafka.apache.org) deployment.
+Beyond the origin of this name I reused to name this project, Kukulcan provides an API and different
+sort of [REPLs](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) to interact with your streams 
+or administer your [Apache Kafka](https://kafka.apache.org) deployment.
 
 It supports POSIX and Windows OS and Scala, Java and Python programming languages.
 
@@ -25,7 +26,7 @@ of its rich API plus some additional utils included and make your interaction be
 ### Requirements
 
 Before starting, you'll need to have installed JDK 11 and [SBT](https://www.scala-sbt.org/). Additionally,
-if you want to use the PyKukulcan REPL, you'll also need Python (supported 2.7, 3.4, 3.5, 3.6, 3.7 and 3.8 versions)
+if you want to use the PyKukulcan REPL, you'll also need Python (tested 2.7, 3.4, 3.5, 3.6, and 3.7 versions)
 and [pip](https://pypi.org/project/pip) installed.
 
 ### Building from source
@@ -39,7 +40,7 @@ Just clone the ``kukulcan`` repo and *"kukulcan-it"*:
 ### Configuration
 
 In the ``config`` directory, you'll find some files with the configurations for each of the APIs Kukulcan provides.
-All of the possible configs for each API are in these files with their description so, if you need to set some
+All the possible configs for each API are in these files with their description so, if you need to set some
 specific configs for your environment, you should set them there before starting.
 
 Also, there is an important environment variable named **``KUKULCAN_HOME``**. If not set, its default value will be
@@ -57,9 +58,11 @@ Contains all the Scala and Java classes to interact with Kafka and extending the
 functionalities. This API contains:
 
 * **KAdmin**: grouped utils for administrative operations for topics, configs, ACLs and metrics.
-* **KConnect**: methods to execute request agains Kafka Connect.
+* **KConnect**: methods to execute requests against Kafka Connect REST API.
 * **KConsumer** and **KProducer**: Kafka consumer/producer with some extra features.
 * **KStreams**: extends Kafka Streams to see how your topology is (printing it in a graph).
+* **KSchemaRegistry**: to interact and manage schemas in [Confluent Schema Registry](https://github.com/confluentinc/schema-registry).
+* **KKsql**: client for querying [Confluent KSQL](https://github.com/confluentinc/ksql) server and integrated with the KSQL-CLI.
 
 ### kukulcan-repl
 
@@ -67,7 +70,7 @@ Enables two sort of entry points for the REPLs: one based on the [Scala REPL](ht
 and the other based on [JShell](https://docs.oracle.com/javase/9/jshell).
 
 Additionally, it includes the logic to read and ``reload`` your configurations stored the ``config`` directory
-in a transparent way.
+transparently.
 
 ### pykukulcan
 
@@ -90,6 +93,14 @@ you can do with Kukulcan:
 
   ![](/docs/img/kconnect.png)
 
+- Managing schemas in Schema Registry:
+
+  ![](/docs/img/kschema-registry.png)
+
+- Interacting with KSQL server and using the KSQL-CLI:
+
+  ![](/docs/img/kksql.png)
+
 > **NOTE**: The REPLs have already the Kukulcan imports: ``com.github.mmolimar.kukulcan`` in case of the
 Scala and Ammonite REPLs and ``com.github.mmolimar.kukulcan.Kukulcan`` in case of the JShell REPL. So you just
 have to start typing ``kukulcan.<option>.`` or ``Kukulcan.<option>.`` respectively.
@@ -100,7 +111,7 @@ have to start typing ``kukulcan.<option>.`` or ``Kukulcan.<option>.`` respective
 [Ammonite](https://ammonite.io) is an improved Scala REPL with a lot of interesting features you can find very
 useful to load scripts or even code in an easier way. Obviously, you must install it previously.
 
-It already includes all dependencies and the Kukulcan Scala API to interact with Kafka.
+It already includes all dependencies, and the Kukulcan Scala API to interact with Kafka.
 
 > **NOTE**: If you're going to use Kukulcan with Ammonite, you'll have to publish the project in local, executing
   ``sbt publishLocal``.
@@ -138,7 +149,7 @@ For Windows OS:
 
 ### PyKukulcan REPL
 
-A Python shell including the needed bindings with Kukulcan Scala API via [Py4J](https://www.py4j.or).
+A Python shell including the needed bindings with Kukulcan Scala API via [Py4J](https://www.py4j.org).
 
 > **NOTE**: If you're going to use the PyKukulcan REPL, you must have Python and pip installed. Then, install
 ``pykukulcan`` in this way: ``pip install python/ -r python/requirements.txt``
@@ -151,12 +162,10 @@ For Windows OS:
 
 ``bin\pykukulcan.cmd``
 
-## TODO's
+## TODOs
 
-- [ ] Tools in the Admin API.
-- [ ] Integration with Schema Registry.
+- [ ] Tools in the KAdmin API.
 - [ ] Integration with REST Proxy.
-- [ ] Integration with ksqlDB.
 - [ ] API for Python.
 
 ## Contribute

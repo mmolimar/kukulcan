@@ -25,7 +25,7 @@ public class KProducer<K, V> extends KafkaProducer<K, V> {
     /**
      * Get all metrics registered.
      *
-     * @return a {@code Map} with the all metrics registered.
+     * @return a {@code Map[MetricName, Metric]} with the all metrics registered.
      */
     public Map<MetricName, Metric> getMetrics() {
         return getMetrics(".*");
@@ -35,7 +35,8 @@ public class KProducer<K, V> extends KafkaProducer<K, V> {
      * Get all metrics registered filtered by the group regular expressions.
      *
      * @param groupRegex Regex to filter metrics by group name.
-     * @return a {@code Map} with the all metrics registered filtered by the group regular expression.
+     * @return a {@code Map[MetricName, Metric]} with the all metrics registered filtered by the group regular
+     * expression.
      */
     public Map<MetricName, Metric> getMetrics(String groupRegex) {
         return getMetrics(groupRegex, ".*");
@@ -46,7 +47,8 @@ public class KProducer<K, V> extends KafkaProducer<K, V> {
      *
      * @param groupRegex Regex to filter metrics by group name.
      * @param nameRegex  Regex to filter metrics by its name.
-     * @return a {@code Map} with the all metrics registered filtered by the group and name regular expressions.
+     * @return a {@code Map[MetricName, Metric]} with the all metrics registered filtered by the group and name
+     * regular expressions.
      */
     public Map<MetricName, Metric> getMetrics(String groupRegex, String nameRegex) {
         return metrics().entrySet().stream()

@@ -25,10 +25,12 @@ build
 libs
 venv
 null
+out
 tmp
 temp
 test-output
 build.log
+sbt.json
 python/*.egg-info
 python/setup.cfg
 __pycache__

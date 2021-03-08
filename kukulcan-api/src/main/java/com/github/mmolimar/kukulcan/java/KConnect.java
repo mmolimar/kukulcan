@@ -35,11 +35,11 @@ public class KConnect {
      * Add a new connector.
      *
      * @param name   Connector name.
-     * @param config {@code Map} with the connector configurations.
+     * @param config {@code Map[String, String]} with the connector configurations.
      * @return A {@code Connector} with the connector definition.
      */
     public Connector addConnector(String name, Map<String, String> config) {
-        return kconnect.addConnector(name, (scala.collection.immutable.Map<String, String>) toScalaMap(config));
+        return kconnect.addConnector(name, toScalaMap(config));
     }
 
     /**
@@ -56,7 +56,7 @@ public class KConnect {
      * Get the connector configurations.
      *
      * @param name Connector name.
-     * @return A {@code Map} with the connector configurations.
+     * @return A {@code Map[String, String]} with the connector configurations.
      */
     public Map<String, String> connectorConfig(String name) {
         return toJavaMap(kconnect.connectorConfig(name));
@@ -115,13 +115,12 @@ public class KConnect {
     /**
      * Validate a connector plugin config.
      *
-     * @param name   Connector name.
-     * @param config Configuration values for the connector.
+     * @param pluginName Connector plugin name.
+     * @param config     Configuration values for the connector.
      * @return A {@code ConnectorPluginValidation} with the results of the validation
      */
-    public ConnectorPluginValidation validateConnectorPluginConfig(String name, Map<String, String> config) {
-        return kconnect.validateConnectorPluginConfig(name,
-                (scala.collection.immutable.Map<String, String>) toScalaMap(config));
+    public ConnectorPluginValidation validateConnectorPluginConfig(String pluginName, Map<String, String> config) {
+        return kconnect.validateConnectorPluginConfig(pluginName, toScalaMap(config));
     }
 
     /**
@@ -132,8 +131,7 @@ public class KConnect {
      * @return A {@code Connector} with the connector definition.
      */
     public Connector updateConnector(String name, Map<String, String> config) {
-        return kconnect.updateConnector(name,
-                (scala.collection.immutable.Map<String, String>) toScalaMap(config));
+        return kconnect.updateConnector(name, toScalaMap(config));
     }
 
     /**

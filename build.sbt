@@ -1,33 +1,52 @@
-val projectVersion = "0.1.0"
+val projectVersion = "0.2.0"
 
 val repos = Seq(
   "Confluent Maven Repo" at "https://packages.confluent.io/maven/",
+  "jitpack" at "https://jitpack.io",
   Resolver.mavenLocal
 )
 
 lazy val settings = new {
-  val projectScalaVersion = "2.12.11"
+  val projectScalaVersion = "2.12.13"
 
   val dependencies = new {
-    val kafkaVersion = "2.5.0"
-    val kafkaConnectClientVersion = "3.1.0"
-    val circeVersion = "0.12.3"
     val asciiGraphsVersion = "0.0.6"
+    val circeVersion = "0.13.0"
+    val confluentVersion = "6.1.0"
+    val kafkaVersion = "2.7.0"
+    val kafkaConnectClientVersion = "3.1.0"
 
+    val scalaTestVersion = "3.2.5"
+
+    val exclusions = ExclusionRule(organization = "org.apache.kafka")
     val api = Seq(
+      "org.scala-lang" % "scala-compiler" % projectScalaVersion,
       "org.apache.kafka" %% "kafka" % kafkaVersion,
       "org.apache.kafka" % "kafka-clients" % kafkaVersion,
       "org.apache.kafka" % "kafka-tools" % kafkaVersion,
       "org.apache.kafka" %% "kafka-streams-scala" % kafkaVersion,
       "org.apache.kafka" % "kafka-streams-test-utils" % kafkaVersion,
-      "org.scala-lang" % "scala-compiler" % projectScalaVersion,
       "org.sourcelab" % "kafka-connect-client" % kafkaConnectClientVersion,
       "io.circe" %% "circe-core" % circeVersion,
       "io.circe" %% "circe-generic" % circeVersion,
       "io.circe" %% "circe-parser" % circeVersion,
-      "com.github.mutcianm" %% "ascii-graphs" % asciiGraphsVersion
+      "io.confluent" % "kafka-schema-registry-client" % confluentVersion excludeAll exclusions,
+      "io.confluent" % "kafka-json-schema-provider" % confluentVersion excludeAll exclusions,
+      "io.confluent" % "kafka-protobuf-provider" % confluentVersion excludeAll exclusions,
+      "io.confluent.ksql" % "ksqldb-cli" % confluentVersion excludeAll exclusions,
+      "com.github.mutcianm" %% "ascii-graphs" % asciiGraphsVersion,
+
+      "org.scalatest" %% "scalatest-wordspec" % scalaTestVersion % Test,
+      "org.scalatest" %% "scalatest-shouldmatchers" % scalaTestVersion % Test,
+      "org.apache.kafka" % "connect-runtime" % kafkaVersion % Test,
+      "org.apache.kafka" % "connect-file" % kafkaVersion % Test,
+      "io.github.embeddedkafka" %% "embedded-kafka-schema-registry" % confluentVersion % Test excludeAll exclusions,
+      "io.confluent.ksql" % "ksqldb-rest-app" % confluentVersion % Test excludeAll exclusions
     )
-    val repl = Seq.empty
+    val repl = Seq(
+      "org.scalatest" %% "scalatest-wordspec" % scalaTestVersion % Test,
+      "org.scalatest" %% "scalatest-shouldmatchers" % scalaTestVersion % Test
+    )
     val root = Seq.empty
   }
   val common = Seq(
@@ -54,11 +73,18 @@ lazy val settings = new {
     packExpandedClasspath := true,
     packGenerateMakefile := false,
     publish / skip := true,
-    libraryDependencies ++= dependencies.root
+    libraryDependencies ++= dependencies.root,
+    jacocoAggregateReportSettings := JacocoReportSettings(
+      title = "Kukulcan Project Code Coverage"
+    )
   )
   val api = Seq(
     name := "kukulcan-api",
-    libraryDependencies ++= dependencies.api
+    libraryDependencies ++= dependencies.api,
+    parallelExecution in Test := false,
+    jacocoAggregateReportSettings := JacocoReportSettings(
+      title = "Kukulcan API Module Code Coverage"
+    )
   )
   val repl = Seq(
     name := "kukulcan-repl",
@@ -78,7 +104,10 @@ lazy val settings = new {
     javacOptions ++= Seq(
       "--add-exports=jdk.jshell/jdk.internal.jshell.tool=ALL-UNNAMED"
     ),
-    libraryDependencies ++= dependencies.repl
+    libraryDependencies ++= dependencies.repl,
+    jacocoAggregateReportSettings := JacocoReportSettings(
+      title = "Kukulcan REPL Module Code Coverage"
+    )
   )
   val pykukulcan = Seq(
     name := "pykukulcan"
@@ -108,6 +137,7 @@ lazy val root = project
   .dependsOn(apiProject, replProject)
   .enablePlugins(PackPlugin)
   .enablePlugins(KukulcanPackPlugin)
+  .enablePlugins(JacocoPlugin)
   .settings(
     settings.common,
     settings.root
